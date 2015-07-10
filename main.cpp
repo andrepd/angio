@@ -159,16 +159,12 @@ double medp (double x,double y) {
 	//return average;
 }
 
-// Usar std::max_element do <algorithm>
-/*
-int maxval(vector<double> list) {
+int maxval(const vector<double>& list) {
+	int res =0;
+	double maxval =0;
 
-	int res=0;
-	double maxval=0;
-
-	for(int i=0;i<list.size();i++) {
-
-		if(list[i]>maxval) {
+	for (int i=0;i<list.size();i++) {
+		if (list[i]>maxval) {
 			maxval=list[i];
 			res=i;
 		}
@@ -176,21 +172,18 @@ int maxval(vector<double> list) {
 
 	return res;
 }
-*/
 
-int neigh(int i,int j) {
+bool neigh(int i, int j) {
+	int res = 0;
 
-	int res=0;
-
-	if(i==0) {
+	if (i==0) {
 		if (a[i+1][j]*a[i][j]<0) res+=1;
-
 		else if (a[Lx-1][j]*a[i][j]<0) res+=1;
 		else if (a[i][j+1]*a[i][j]<0) res+=1;
 		else if (a[i][j-1]*a[i][j]<0) res+=1;
 	}
 
-	if(i==Lx) {
+	else if (i==Lx) {
 		if (a[i+1][j]*a[i][j]<0) res+=1;
 		else if (a[Lx-1][j]*a[i][j]<0) res+=1;
 		else if (a[i][j+1]*a[i][j]<0) res+=1;
@@ -204,57 +197,55 @@ int neigh(int i,int j) {
 		else if (a[i][j-1]*a[i][j]<0) res+=1;
 	}
 
-	if(res==0 || res==4) return 0;
-
-	else return 1;
+	if (res==0 || res==4)
+	   	return 0;
+	else 
+		return 1;
 }
 
 void newtip() {
-
 	int maxval(vector<double> list);
 	double phimed;
 	vector<vector<double>> interface;
-	vector<double> vegf,pick,point;
+	vector<double> vegf, pick, point;
 
-	for(int i=1;i<(Lx-1);i++) {
-		for(int j=1;j<(Ly-1);j++) {
-
-			if(neigh(i,j)==1) {
-				point={i,j};
-				interface.push_back(point);
-				vegf.push_back(v[i][j]);
+	int pos = 0;
+	for (int i=1;i<Lx-1;i++) {
+		for (int j=1;j<Ly-1;j++) {
+			if (neigh(i,j)==1) {
+				interface[pos] = ({i,j});
+				vegf[pos] = v[i][j];
+				pos++;
 			}
 		}
 	}
 
 	double dist1,dist2,dist3;
-	int senti=1,maxvegf;
+	// TODO
+	int senti = 1,maxvegf;
 
-	while(senti!=0) {
+	while (senti!=0) {
+		maxvegf = maxval(vegf);
+		pick = interface[maxvegf];
 
-		maxvegf=maxval(vegf);
-		pick=interface[maxvegf];
-
-		for(int i=0;i<tips.size();i++) {
-
+		for (int i=0;i<tips.size();i++) {
 			dist1=sqrt((pick[0]-tips[i][0])*(pick[0]-tips[i][0])+(pick[1]-tips[i][1])*(pick[1]-tips[i][1]));
 			dist2=sqrt((pick[0]-tips[i][0]-Lx)*(pick[0]-tips[i][0]-Lx)+(pick[1]-tips[i][1])*(pick[1]-tips[i][1]));    
 			dist3=sqrt((pick[0]-tips[i][0]+Lx)*(pick[0]-tips[i][0]+Lx)+(pick[1]-tips[i][1])*(pick[1]-tips[i][1]));    
 
-			if(dist1<(4.*rad) || dist2<(4.*rad) || dist3<(4.*rad)) {
-
+			if (dist1<(4.*rad) || dist2<(4.*rad) || dist3<(4.*rad)) {
 				vegf[maxvegf]=-1000;
 				break;
 			}
-			if(i==tips.size()-1) senti=0;
+			if (i==tips.size()-1)
+				senti = 0;
 		}
 	}
-	interface.clear();
+	//interface.clear();
 	tips.push_back(pick);
 }
 
-void outint(int ff){
-
+void outint (int ff) {
 	int i,j;
 	char s[20];
 	ofstream wout;
@@ -290,8 +281,7 @@ void outint(int ff){
 	csiout.close();
 }
 
-void out(double x,double y){
-
+void out(double x, double y){
 	int i,j;
 	char s[20];
 	ofstream wout;
@@ -321,26 +311,24 @@ void out(double x,double y){
 }
 
 
-void ini(){
-
+void ini() {
 	int i,j;
 
 	a_med=0;
 
 	for(i=0;i<Lx;i++){
 		for(j=0;j<Ly;j++){
-			a[i][j]=(i<Lx/5+10 && i>Lx/5)?1:-1;
-			w[i][j]=0;
-			csi[i][j]=0;
-			v[i][j]=((double)i)/(Lx-1);
-			a_med+=a[i][j];
+			a[i][j] = i<Lx/5+10 && i>Lx/5 ? 1 : -1;
+			w[i][j] = 0;
+			csi[i][j] = 0;
+			v[i][j] = ((double)i)/(Lx-1);
+			a_med += a[i][j];
 		}
 	}
-	a_med/=(Lx*Ly);
+	a_med /= (Lx*Ly);
 }
 
-void step(){
-
+void step() {
 	void poisson();
 	void ch();
 
@@ -348,8 +336,7 @@ void step(){
 	ch();
 }
 
-void ch(){
-
+void ch() {
 	double f(double z);
 	int i,j;
 	double Q[Lx][Ly],mu[Lx][Ly],an[Lx][Ly],vn[Lx][Ly],aloc;
@@ -360,8 +347,8 @@ void ch(){
 
 	double maiorv,maiora,maiorw;
 
-	for(i=0;i<Lx;i++){
-		for(j=0;j<Ly;j++){
+	for (i=0;i<Lx;i++) {
+		for (j=0;j<Ly;j++) {
 			aloc=a[i][j];
 			txx=w[bx(i+1)][j]+w[bx(i-1)][j]-2*w[i][j];
 			tyy=w[i][by(j+1)]+w[i][by(j-1)]-2*w[i][j];
@@ -376,8 +363,8 @@ void ch(){
 	}
 
 #if (alfa != 0)
-	for(i=0;i<Lx;i++){
-		for(j=0;j<Ly;j++){
+	for (i=0;i<Lx;i++) {
+		for (j=0;j<Ly;j++) {
 			IE[i][j]=(I1[bx(i+1)][j]+I1[bx(i-1)][j]-2*I1[i][j])+(I2[i][by(j+1)]+I2[i][by(j-1)]-2*I2[i][j])+2*(I3[bx(i+1)][by(j+1)]-I3[bx(i-1)][by(j+1)]+I3[bx(i-1)][by(j-1)]-I3[bx(i+1)][by(j-1)])/4.0;
 		}
 	}
@@ -428,8 +415,7 @@ void ch(){
 	  }*/
 }
 
-void poisson(){
-
+void poisson() {
 	double f(double z);
 	int i,j;
 	double wn[Lx][Ly];
@@ -437,23 +423,22 @@ void poisson(){
 	double tol;
 	double sum;
 
-
 	tol=1E-3;
 	dtau=0.24;
 
 	diff=tol+1;
 	while(diff>tol){
 		sum=0;
-		for(i=0;i<Lx;i++){
-			for(j=0;j<Ly;j++){
+		for (i=0;i<Lx;i++) {
+			for (j=0;j<Ly;j++) {
 				wn[i][j]=w[i][j]+dtau*(w[bx(i+1)][j]+w[bx(i-1)][j]+w[i][by(j-1)]+w[i][by(j+1)]-4*w[i][j]-(f(a[i][j])+csi[i][j]));
 				sum+=wn[i][j];
 			}
 		}
 		sum/=(Lx*Ly);
 		diff=0;
-		for(i=0;i<Lx;i++){
-			for(j=0;j<Ly;j++){
+		for (i=0;i<Lx;i++) {
+			for (j=0;j<Ly;j++) {
 				wn[i][j]=wn[i][j]-sum;
 				diff+=fabs(wn[i][j]-w[i][j]);
 				w[i][j]=wn[i][j];
@@ -476,8 +461,7 @@ vector<double> gradxy(double x,double y) {
 	return grad;
 }
 
-void csicalc(vector<vector<double>> tips,double raio, int index) {
-
+void csicalc(const vector<vector<double>>& tips, double raio, int index) {
 	int i,j;
 	double diff,dtau;
 	double tol;
@@ -542,7 +526,7 @@ void csicalc(vector<vector<double>> tips,double raio, int index) {
 	csiout.close();
 }
 
-vector<double> findxy(vector<double> pos,vector<double> gradxy) {
+vector<double> findxy(const vector<double>& pos, const vector<double>& gradxy) {
 
 	double modulo=sqrt(gradxy[0]*gradxy[0]+gradxy[1]*gradxy[1]);
 
@@ -569,7 +553,7 @@ vector<double> findxy(vector<double> pos,vector<double> gradxy) {
 	return pos;
 }
 
-double find(double inic,double cy){
+double find(double inic, double cy){
 
 	double resultado;
 	int res1,res2,med;
@@ -588,7 +572,6 @@ double find(double inic,double cy){
 }
 
 double f(double z){
-
 	return(-valoralfa*z);
 }
 
@@ -620,6 +603,5 @@ double prolif(int i, int j){
 }
 
 double consumo(int i, int j){
-
-	return((a[i][j]>0?(a[i][j]<1? 0.1*a[i][j]:0.1):0)*v[i][j]);
+	return((a[i][j]>0 ? (a[i][j]<1 ? 0.1*a[i][j] : 0.1) : 0)*v[i][j]);
 }
