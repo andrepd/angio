@@ -1,14 +1,15 @@
 #include <fstream>
-#include <math.h>
-#include <stdlib.h>
+//#include <math.h>
+#include <cmath>
+//#include <stdlib.h>
 #include <cstdlib> 
-#include <iomanip>
+//#include <iomanip>
 #include <iostream>
 #include <fstream>
 #include <vector>
-#include <omp.h>
+//#include <omp.h>
 #include <random>
-#include <chrono>
+//#include <chrono>
 
 #define alfa 1
 #define teste 1
@@ -29,7 +30,7 @@ const int rad=5;  // Raio das celulas
 const double vbase=0.01;
 const double valoralfa=0.065;
 
-int nmax=1;  // Numero de tip cells maximo
+const int nmax=2;  // Numero de tip cells maximo
 
 //vector<vector<double>> fontes={/*{120,60},{120,70},{120,80},{120,90}*/};//fontes de VEGF
 
@@ -42,11 +43,11 @@ int bx(int xx);
 int by(int yy);
 
 int bx(int xx){
-	return ((xx+Lx)%Lx);
+	return (xx+Lx)%Lx;
 }
 
 int by(int yy){
-	return ((yy+Ly)%Ly);
+	return (yy+Ly)%Ly;
 }
 
 int t;
@@ -110,7 +111,7 @@ int main() {
 
 		ini();
 
-		for (t=0;t<100000;t++) {
+		for (t=0;t<10000;t++) {
 			//cerr << "t=" << t;
 			step();
 			//cerr << " OK\n";
@@ -150,10 +151,13 @@ double medp(vect2<double> V) {
 	double sum = 0;
 	double sumw = 0;
 
+	const int cx = (int)V.x;
+	const int cy = (int)V.y;
+
 	//for (int i=xc-1;i<(xc+rad+1);i++) {
 	//	for (int j=yc-1;j<(yc+rad+1);j++) {
-	for (int i=V.x-rad;i<=V.x+rad;i++) {
-		for (int j=V.y-rad;j<=V.y+rad;j++) {
+	for (int i=cx-rad;i<=cx+rad;i++) {
+		for (int j=cy-rad;j<=cy+rad;j++) {
 			const double dist = sqrt((V.x-i)*(V.x-i)+(V.y-j)*(V.y-j));
 			if (dist<rad) {
 				sum += a[i][j]/sqrt(dist);
@@ -463,8 +467,11 @@ void poisson() {
 vect2<double> gradxy(vect2<double> V) {
 	vect2<double> grad {0,0};
 
-	grad.x = (v[V.x+1][V.y]-v[V.x-1][V.y])/2.;
-	grad.y = (v[V.x][V.y+1]-v[V.x][V.y-1])/2.;
+	const int cx=(int)V.x;
+	const int cy=(int)V.y;
+
+	grad.x = (v[cx+1][cy]-v[cx-1][cy])/2.;
+	grad.y = (v[cx][cy+1]-v[cx][cy-1])/2.;
 
 	return grad;
 }
@@ -478,7 +485,7 @@ void csicalc(const vector<vect2<double>>& tips, double raio, int index) {
 	double csin[Lx][Ly];
 	ofstream csiout;
 	char s[20];
-	double cx=0,cy=0,cynew,cxnew;
+	//double cx=0,cy=0,cynew,cxnew;
 	vect2<double> vgrad {0,0};
 	double dir=0;
 
@@ -488,21 +495,21 @@ void csicalc(const vector<vect2<double>>& tips, double raio, int index) {
 			Force_[i][j] = 0.;
 			for(int k=0;k<tips.size();k++) {	
 
-				vgrad=gradxy(tips[k]);
-				dir=atan(vgrad.y/vgrad.x);
+				vgrad = gradxy(tips[k]);
+				//dir=atan(vgrad.y/vgrad.x);
 				const double cos_ = vgrad.x/(sqrt(vgrad.x*vgrad.x+vgrad.y*vgrad.y));
 				const double sin_ = vgrad.y/(sqrt(vgrad.x*vgrad.x+vgrad.y*vgrad.y));
 
-				if ( (vgrad.x>0 && vgrad.y<0) || (vgrad.x<0 && vgrad.y<0) ) 
-					dir+=M_PI;
+				//if ( (vgrad.x>0 && vgrad.y<0) || (vgrad.x<0 && vgrad.y<0) ) 
+				//	dir+=M_PI;
 
-				cx=i-tips[k].x;
-				cy=j-tips[k].y;
+				const double cx=i-tips[k].x;
+				const double cy=j-tips[k].y;
 
-				cxnew=cx*cos(dir)-cy*sin(dir);
-				cynew=cx*sin(dir)+cy*cos(dir);
+				//cxnew=cx*cos(dir)-cy*sin(dir);
+				//cynew=cx*sin(dir)+cy*cos(dir);
 
-				Force_[i][j]+=-Amp*exp(-cynew*cynew/raio/raio)*exp(-cxnew*cxnew/raio/raio)*(4*cxnew*cxnew-2*raio*raio)/raio/raio/raio/raio;	
+				//Force_[i][j]+=-Amp*exp(-cynew*cynew/raio/raio)*exp(-cxnew*cxnew/raio/raio)*(4*cxnew*cxnew-2*raio*raio)/raio/raio/raio/raio;	
 				//Force[i][j] += -Amp/raio/raio*exp(-(cx*cx+cy*cy)/raio/raio)*((2+4*cx*cx/raio/raio)*cos(dir)+4*cx*cy/raio/raio*sin(dir));
 				//Force[i][j] += -Amp/raio/raio*exp(-(cx*cx+cy*cy)/raio/raio)*((2+4*cx*cx/raio/raio)*cos_+4*cx*cy/raio/raio*sin_);
 				Force[i][j] += 2*Amp/raio/raio*exp(-(cx*cx+cy*cy)/raio/raio)*((1-2*cx*cx/raio/raio)*cos_+2*cx*cy/raio/raio*sin_);
@@ -561,11 +568,11 @@ vect2<double> findxy(vect2<double> pos, vect2<double> gradxy) {
 		posn.x=pos.x+delta*gradxy.x;
 		posn.y=pos.y+delta*gradxy.y;
 
-		if(medp(posn)>0) {
+		if (medp(posn)>0) {
 			pos=posn;
-		}
-		else
+		} else {
 			delta/=2.;
+		}
 	}
 	return pos;
 }
@@ -597,13 +604,13 @@ double prolif(int i, int j){
 	else {
 		double res=0;
 		int n=0;
-		for (int x=i-rad;x<=i+rad;x++){
-			for(int y=j-rad;y<=j+rad;y++){
-				if((x-i)*(x-i)+(y-j)*(y-j)<=rad*rad){
+		for (int x=i-rad;x<=i+rad;x++) {
+			for (int y=j-rad;y<=j+rad;y++) {
+				if ((x-i)*(x-i)+(y-j)*(y-j)<=rad*rad) {
 					const double ra = v[bx(x)][by(y)];
 					const double aloc = a[bx(x)][by(y)];
 					const double rc = csi[bx(x)][by(y)]-valoralfa*aloc;
-					if (aloc>0.5 && rc>-valoralfa+0.05){
+					if (aloc>0.5 && rc>-valoralfa+0.05) {
 						res += ra>vmax ? Pmax : ra*Pmax/vmax;
 						n++;
 					}
