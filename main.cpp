@@ -54,7 +54,7 @@ int main() {
 	void step();
 	void out(double x,double y);
 	void outint(int ff);
-	void csicalc(vector<vector<double>> tips,double raio, int index);
+	void csicalc(const vector<vector<double>>& tips, double raio, int index);
 	void newtip();
 
 	double find(double inic,double cy);
@@ -101,7 +101,7 @@ int main() {
 
 		ini();
 
-		fo r(t=0;t<10000;t++) {
+		for (t=0;t<10000;t++) {
 			step();
 			if ((t+100) % 500 == 0) {
 				cout << "t=" << t << '\n';
@@ -173,6 +173,7 @@ int maxval(const vector<double>& list) {
 	return res;
 }
 
+// TODO
 bool neigh(int i, int j) {
 	int res = 0;
 
@@ -204,16 +205,16 @@ bool neigh(int i, int j) {
 }
 
 void newtip() {
-	int maxval(vector<double> list);
+	int maxval(const vector<double>& list);
 	double phimed;
-	vector<vector<double>> interface;
-	vector<double> vegf, pick, point;
+	vector<vector<double>> interface ((Lx-2)*(Ly-2), vector<double>(2,0.));
+	vector<double> vegf ((Lx-2)*(Ly-2), 0.), pick, point;
 
 	int pos = 0;
 	for (int i=1;i<Lx-1;i++) {
 		for (int j=1;j<Ly-1;j++) {
 			if (neigh(i,j)==1) {
-				interface[pos] = ({i,j});
+				interface[pos] = {i,j};
 				vegf[pos] = v[i][j];
 				pos++;
 			}
@@ -448,7 +449,7 @@ void poisson() {
 	}
 }
 
-vector<double> gradxy(double x,double y) {
+vector<double> gradxy(double x, double y) {
 
 	vector<double> grad(2,0);
 
@@ -526,7 +527,7 @@ void csicalc(const vector<vector<double>>& tips, double raio, int index) {
 	csiout.close();
 }
 
-vector<double> findxy(const vector<double>& pos, const vector<double>& gradxy) {
+vector<double> findxy(vector<double> pos, vector<double> gradxy) {
 
 	double modulo=sqrt(gradxy[0]*gradxy[0]+gradxy[1]*gradxy[1]);
 
