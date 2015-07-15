@@ -15,6 +15,11 @@
 
 using namespace std;
 
+template <class T>
+struct vect2 {
+	T x,y;
+};
+
 const int Lx=128,Ly=128;  // Dimensoes da grelha
 const double medini=-0.2,ge=0.126;
 const double Amp=10.55;  // Amplitude da forca
@@ -28,7 +33,7 @@ int nmax=2;  // Numero de tip cells maximo
 
 //vector<vector<double>> fontes={/*{120,60},{120,70},{120,80},{120,90}*/};//fontes de VEGF
 
-vector<vector<double>> tips;  // Lista das tip cell
+vector<vect2<double>> tips;  // Lista das tip cell
 
 double vmax,Pmax;
 double a[Lx][Ly],w[Lx][Ly],csi[Lx][Ly],v[Lx][Ly],a_med;
@@ -54,17 +59,17 @@ int main() {
 	void step();
 	void out(double x,double y);
 	void outint(int ff);
-	void csicalc(const vector<vector<double>>& tips, double raio, int index);
+	void csicalc(const vector<vect2<double>>& tips, double raio, int index);
 	void newtip();
 
 	double find(double inic,double cy);
-	double medp(double x,double y);
+	double medp(vect2<double>);
 
 	int neigh(int i,int j);
 
-	vector<double> findxy(vector<double> pos,vector<double> gradxy);
-	vector<double> gradxy(double x,double y); 
-	vector<double> grad(2,0);
+	vect2<double> findxy(vect2<double> pos, vect2<double> gradxy);
+	vect2<double> gradxy(vect2<double> V); 
+	vect2<double> grad {0,0};
 
 	ofstream resultados("res");
 
@@ -92,8 +97,12 @@ int main() {
 	passo=5000;
 #endif
 
-	srand48(time(0));
-	passo=2500;
+	random_device seed;
+	mt19937_64 rand_gen(seed());
+	uniform_real_distribution<double> dist(0.0,1.0);
+
+	//srand48(time(0));
+	passo=1000;
 
 	for (iN=0;iN<4;iN++) {
 		vmax=0.3;
@@ -101,22 +110,25 @@ int main() {
 
 		ini();
 
-		for (t=0;t<10000;t++) {
+		for (t=0;t<100000;t++) {
+			//cerr << "t=" << t;
 			step();
+			//cerr << " OK\n";
 			if ((t+100) % 500 == 0) {
 				cout << "t=" << t << '\n';
 				for (int k=0;k<tips.size();k++) {
-					grad=gradxy(tips[k][0],tips[k][1]);
-					tips[k]=findxy(tips[k],grad);
+					grad = gradxy(tips[k]);
+					tips[k] = findxy(tips[k],grad);
 					//tips[k][0]=find(tips[k][0]-2,tips[k][1]);
-					cout<<"Tip "<<k+1<<'\t'<<tips[k][0]<<'\t'<<tips[k][1]<<'\t'<<grad[0]<<'\t'<<grad[1]<<'\n';
+					cout<<"Tip "<<k+1<<'\t'<<tips[k].x<<'\t'<<tips[k].x<<'\t'<< grad.x << '\t' << grad.y << '\n';
 				}
 				cout<<'\n';
-				csicalc(tips,float(rad),0);
+				csicalc(tips,double(rad),0);
 				if(fabs(a_med)>20)break;
 			}
 			if ((t+100) % 500 == 0 && tips.size()<nmax) {
-				rand=drand48();
+				//rand=drand48();
+				rand = dist(rand_gen);
 				if(rand>0.5) newtip();
 			}
 			if ((t+1) % passo == 0)
@@ -131,16 +143,18 @@ int main() {
 	}
 }
 
-double medp (double x,double y) {
-	int xc = (int)x;
-	int yc = (int)y;
+double medp(vect2<double> V) {
+	int xc = (int)V.x;
+	int yc = (int)V.y;
 
 	double sum = 0;
 	double sumw = 0;
 
-	for (int i=xc-1;i<(xc+rad+1);i++) {
-		for (int j=yc-1;j<(yc+rad+1);j++) {
-			double dist = sqrt((x-i)*(x-i)+(y-j)*(y-j));
+	//for (int i=xc-1;i<(xc+rad+1);i++) {
+	//	for (int j=yc-1;j<(yc+rad+1);j++) {
+	for (int i=xc-rad;i<=xc+rad;i++) {
+		for (int j=yc-rad;j<=yc+rad;j++) {
+			const double dist = sqrt((V.x-i)*(V.x-i)+(V.y-j)*(V.y-j));
 			if (dist<rad) {
 				sum += a[i][j]/sqrt(dist);
 				sumw += 1/sqrt(dist);
@@ -207,8 +221,11 @@ bool neigh(int i, int j) {
 void newtip() {
 	int maxval(const vector<double>& list);
 	double phimed;
-	vector<vector<double>> interface ((Lx-2)*(Ly-2), vector<double>(2,0.));
-	vector<double> vegf ((Lx-2)*(Ly-2), 0.), pick, point;
+	//vector<vector<double>> interface ((Lx-2)*(Ly-2), vector<double>(2,0.));
+	//vector<double> vegf ((Lx-2)*(Ly-2), 0.), pick, point;
+	vector<vect2<int>> interface ((Lx-2)*(Ly-2), {0,0});
+	vector<double> vegf ((Lx-2)*(Ly-2), 0.);
+   	vect2<int> pick, point;
 
 	int pos = 0;
 	for (int i=1;i<Lx-1;i++) {
@@ -223,16 +240,16 @@ void newtip() {
 
 	double dist1,dist2,dist3;
 	// TODO
-	int senti = 1,maxvegf;
+	int senti = 1, maxvegf;
 
 	while (senti!=0) {
 		maxvegf = maxval(vegf);
 		pick = interface[maxvegf];
 
 		for (int i=0;i<tips.size();i++) {
-			dist1=sqrt((pick[0]-tips[i][0])*(pick[0]-tips[i][0])+(pick[1]-tips[i][1])*(pick[1]-tips[i][1]));
-			dist2=sqrt((pick[0]-tips[i][0]-Lx)*(pick[0]-tips[i][0]-Lx)+(pick[1]-tips[i][1])*(pick[1]-tips[i][1]));    
-			dist3=sqrt((pick[0]-tips[i][0]+Lx)*(pick[0]-tips[i][0]+Lx)+(pick[1]-tips[i][1])*(pick[1]-tips[i][1]));    
+			dist1=sqrt((pick.x-tips[i].x)*(pick.x-tips[i].x)+(pick.y-tips[i].y)*(pick.y-tips[i].y));
+			dist2=sqrt((pick.x-tips[i].x-Lx)*(pick.x-tips[i].x-Lx)+(pick.y-tips[i].y)*(pick.y-tips[i].y));    
+			dist3=sqrt((pick.x-tips[i].x+Lx)*(pick.x-tips[i].x+Lx)+(pick.y-tips[i].y)*(pick.y-tips[i].y));    
 
 			if (dist1<(4.*rad) || dist2<(4.*rad) || dist3<(4.*rad)) {
 				vegf[maxvegf]=-1000;
@@ -243,7 +260,8 @@ void newtip() {
 		}
 	}
 	//interface.clear();
-	tips.push_back(pick);
+	const vect2<double> ret {double(pick.x),double(pick.y)};
+	tips.push_back(ret);
 }
 
 void outint (int ff) {
@@ -421,13 +439,13 @@ void poisson() {
 	int i,j;
 	double wn[Lx][Ly];
 	double diff,dtau;
-	double tol;
+	const double tol = 1E-3;
 	double sum;
 
-	tol=1E-3;
 	dtau=0.24;
 
 	diff=tol+1;
+	double diff_;
 	while(diff>tol){
 		sum=0;
 		for (i=0;i<Lx;i++) {
@@ -437,6 +455,7 @@ void poisson() {
 			}
 		}
 		sum/=(Lx*Ly);
+		//diff_ = diff;
 		diff=0;
 		for (i=0;i<Lx;i++) {
 			for (j=0;j<Ly;j++) {
@@ -446,51 +465,64 @@ void poisson() {
 			}
 		}
 		diff/=(Lx*Ly);
+		//int foo;
+		//if (fabs(diff-diff_) > 1) cin >> foo; 
+		//cerr << "    " << diff << "\n";
 	}
 }
 
-vector<double> gradxy(double x, double y) {
+vect2<double> gradxy(vect2<double> V) {
 
-	vector<double> grad(2,0);
+	vect2<double> grad {0,0};
 
-	int cx=(int)x;
-	int cy=(int)y;
+	int cx=(int)V.x;
+	int cy=(int)V.y;
 
-	grad[0]=(v[cx+1][cy]-v[cx-1][cy])/2.;
-	grad[1]=(v[cx][cy+1]-v[cx][cy-1])/2.;
+	grad.x=(v[cx+1][cy]-v[cx-1][cy])/2.;
+	grad.y=(v[cx][cy+1]-v[cx][cy-1])/2.;
 
 	return grad;
 }
 
-void csicalc(const vector<vector<double>>& tips, double raio, int index) {
+void csicalc(const vector<vect2<double>>& tips, double raio, int index) {
 	int i,j;
 	double diff,dtau;
 	double tol;
 	double sum;
 	double Force[Lx][Ly];
+	double Force_[Lx][Ly];
 	double csin[Lx][Ly];
 	ofstream csiout;
 	char s[20];
 	double cx=0,cy=0,cynew,cxnew;
-	vector<double> vgrad(2,0);
+	vect2<double> vgrad {0,0};
 	double dir=0;
 
 	for(i=0;i<Lx;i++) {
 		for(j=0;j<Ly;j++){
-			Force[i][j]=0.;
+			Force[i][j] = 0.;
+			Force_[i][j] = 0.;
 			for(int k=0;k<tips.size();k++) {	
 
-				vgrad=gradxy(tips[k][0],tips[k][1]);
-				dir=atan(vgrad[1]/vgrad[0]);
-				if((vgrad[0]>0 && vgrad[1]<0) || (vgrad[0]<0 && vgrad[1]<0) ) dir+=M_PI;
+				vgrad=gradxy(tips[k]);
+				dir=atan(vgrad.y/vgrad.x);
+				const double cos_ = vgrad.x/(sqrt(vgrad.x*vgrad.x+vgrad.y*vgrad.y));
+				const double sin_ = vgrad.y/(sqrt(vgrad.x*vgrad.x+vgrad.y*vgrad.y));
 
-				cx=i-tips[k][0];
-				cy=j-tips[k][1];
+				if ( (vgrad.x>0 && vgrad.y<0) || (vgrad.x<0 && vgrad.y<0) ) 
+					dir+=M_PI;
+
+				cx=i-tips[k].x;
+				cy=j-tips[k].y;
 
 				cxnew=cx*cos(dir)-cy*sin(dir);
 				cynew=cx*sin(dir)+cy*cos(dir);
 
-				Force[i][j]+=-Amp*exp(-cynew*cynew/raio/raio)*exp(-cxnew*cxnew/raio/raio)*(4*cxnew*cxnew-2*raio*raio)/raio/raio/raio/raio;	
+				Force_[i][j]+=-Amp*exp(-cynew*cynew/raio/raio)*exp(-cxnew*cxnew/raio/raio)*(4*cxnew*cxnew-2*raio*raio)/raio/raio/raio/raio;	
+				//Force[i][j] += -Amp/raio/raio*exp(-(cx*cx+cy*cy)/raio/raio)*((2+4*cx*cx/raio/raio)*cos(dir)+4*cx*cy/raio/raio*sin(dir));
+				//Force[i][j] += -Amp/raio/raio*exp(-(cx*cx+cy*cy)/raio/raio)*((2+4*cx*cx/raio/raio)*cos_+4*cx*cy/raio/raio*sin_);
+				Force[i][j] += -2*Amp/raio/raio*exp(-(cx*cx+cy*cy)/raio/raio)*((1-2*cx*cx/raio/raio)*cos_+2*cx*cy/raio/raio*sin_);
+				//cerr << i << " " << j << " " << Force[i][j] << " " << Force_[i][j] << "\n";
 			}
 			csi[i][j]=csin[i][j]=0;
 		}
@@ -513,6 +545,7 @@ void csicalc(const vector<vector<double>>& tips, double raio, int index) {
 			}
 		}
 		diff/=(Lx*Ly);
+		//cerr << "  " << diff << "\n";
 	}
 
 	sprintf(s,"cout.%d",index);
@@ -525,27 +558,27 @@ void csicalc(const vector<vector<double>>& tips, double raio, int index) {
 		csiout<<"\n";
 	}
 	csiout.close();
+	//cerr << "DONE\n";
 }
 
-vector<double> findxy(vector<double> pos, vector<double> gradxy) {
+vect2<double> findxy(vect2<double> pos, vect2<double> gradxy) {
 
-	double modulo=sqrt(gradxy[0]*gradxy[0]+gradxy[1]*gradxy[1]);
+	double modulo=sqrt(gradxy.x*gradxy.x+gradxy.y*gradxy.y);
 
-	gradxy[0]/=modulo;
-	gradxy[1]/=modulo;
+	gradxy.x/=modulo;
+	gradxy.y/=modulo;
 
-	pos[0]-=2*gradxy[0];
-	pos[1]-=2*gradxy[1];
+	pos.x-=2*gradxy.x;
+	pos.y-=2*gradxy.y;
 
 	double delta=2.;
-	vector<double> posn={0,0};
+	vect2<double> posn={0,0};
 
-	while(delta>0.001) {
+	while (delta>0.001) {
+		posn.x=pos.x+delta*gradxy.x;
+		posn.y=pos.y+delta*gradxy.y;
 
-		posn[0]=pos[0]+delta*gradxy[0];
-		posn[1]=pos[1]+delta*gradxy[1];
-
-		if(medp(posn[0],posn[1])>0) {
+		if(medp(posn)>0) {
 			pos=posn;
 		}
 		else
@@ -569,11 +602,11 @@ double find(double inic, double cy){
 
 	resultado=res1-(res2-res1)*a[res1][(int)cy]/(a[res2][(int)cy]-a[res1][(int)cy]);
 
-	return(resultado);
+	return resultado;
 }
 
 double f(double z){
-	return(-valoralfa*z);
+	return -valoralfa*z;
 }
 
 double prolif(int i, int j){
@@ -598,11 +631,11 @@ double prolif(int i, int j){
 				}
 			}
 		}
-		res=n>0?(res/n):0;
+		res = n>0 ? res/n : 0;
 	}
-	return(res);
+	return res;
 }
 
 double consumo(int i, int j){
-	return((a[i][j]>0 ? (a[i][j]<1 ? 0.1*a[i][j] : 0.1) : 0)*v[i][j]);
+	return (a[i][j]>0 ? (a[i][j]<1 ? 0.1*a[i][j] : 0.1) : 0)*v[i][j];
 }
