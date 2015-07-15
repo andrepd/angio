@@ -333,12 +333,9 @@ void out(double x, double y){
 
 
 void ini() {
-	int i,j;
-
 	a_med=0;
-
-	for(i=0;i<Lx;i++){
-		for(j=0;j<Ly;j++){
+	for (int i=0;i<Lx;i++){
+		for (int j=0;j<Ly;j++){
 			a[i][j] = i<Lx/5+10 && i>Lx/5 ? 1 : -1;
 			w[i][j] = 0;
 			csi[i][j] = 0;
@@ -359,7 +356,6 @@ void step() {
 
 void ch() {
 	double f(double z);
-	int i,j;
 	double Q[Lx][Ly],mu[Lx][Ly],an[Lx][Ly],vn[Lx][Ly],aloc;
 	double txx,txy,tyy;
 	double I1[Lx][Ly],I2[Lx][Ly],I3[Lx][Ly],IE[Lx][Ly];
@@ -368,8 +364,8 @@ void ch() {
 
 	double maiorv,maiora,maiorw;
 
-	for (i=0;i<Lx;i++) {
-		for (j=0;j<Ly;j++) {
+	for (int i=0;i<Lx;i++) {
+		for (int j=0;j<Ly;j++) {
 			aloc=a[i][j];
 			txx=w[bx(i+1)][j]+w[bx(i-1)][j]-2*w[i][j];
 			tyy=w[i][by(j+1)]+w[i][by(j-1)]-2*w[i][j];
@@ -384,23 +380,23 @@ void ch() {
 	}
 
 #if (alfa != 0)
-	for (i=0;i<Lx;i++) {
-		for (j=0;j<Ly;j++) {
+	for (int i=0;i<Lx;i++) {
+		for (int j=0;j<Ly;j++) {
 			IE[i][j]=(I1[bx(i+1)][j]+I1[bx(i-1)][j]-2*I1[i][j])+(I2[i][by(j+1)]+I2[i][by(j-1)]-2*I2[i][j])+2*(I3[bx(i+1)][by(j+1)]-I3[bx(i-1)][by(j+1)]+I3[bx(i-1)][by(j-1)]-I3[bx(i+1)][by(j-1)])/4.0;
 		}
 	}
 #endif
 
-	for(i=0;i<Lx;i++){
-		for(j=0;j<Ly;j++){
+	for(int i=0;i<Lx;i++){
+		for(int j=0;j<Ly;j++){
 			aloc=a[i][j];
 			mu[i][j]=-aloc+aloc*aloc*aloc-(a[bx(i+1)][j]+a[bx(i-1)][j]+a[i][by(j-1)]+a[i][by(j+1)]-4*aloc)-ge*Q[i][j]+valoralfa*csi[i][j];
 		}
 	}
 
 	a_med=0;
-	for(i=0;i<Lx;i++){
-		for(j=0;j<Ly;j++){
+	for(int i=0;i<Lx;i++){
+		for(int j=0;j<Ly;j++){
 			an[i][j]=a[i][j]+dt*(mu[bx(i+1)][j]+mu[bx(i-1)][j]+mu[i][by(j-1)]+mu[i][by(j+1)]-4*mu[i][j]+ (t*dt>10?prolif(i,j):0) );
 #if (alfa !=0)
 			an[i][j]=an[i][j]+2*ge*IE[i][j]*valoralfa*dt;
@@ -411,19 +407,19 @@ void ch() {
 	a_med/=(Lx*Ly);
 
 
-	for(i=1;i<Lx-1;i++){
-		for(j=0;j<Ly;j++){
+	for(int i=1;i<Lx-1;i++){
+		for(int j=0;j<Ly;j++){
 			vn[i][j]=v[i][j]+D*dt*(v[i+1][j]+v[i-1][j]+v[i][by(j+1)]+v[i][by(j-1)]-4*v[i][j]-consumo(i,j));
 		}
 	}
 
-	for(j=0;j<Ly;j++){
+	for(int j=0;j<Ly;j++){
 		vn[0][j]=0;
 		vn[Lx-1][j]=1;
 	}
 
-	for(i=0;i<Lx;i++){
-		for(j=0;j<Ly;j++){
+	for(int i=0;i<Lx;i++){
+		for(int j=0;j<Ly;j++){
 			a[i][j]=an[i][j];
 			v[i][j]=vn[i][j];
 		}
@@ -438,29 +434,26 @@ void ch() {
 
 void poisson() {
 	double f(double z);
-	int i,j;
 	double wn[Lx][Ly];
-	double diff,dtau;
+	const double dtau = 0.24;
 	const double tol = 1E-3;
 	double sum;
 
-	dtau=0.24;
-
-	diff=tol+1;
-	double diff_;
-	while(diff>tol){
+	//double diff = tol+1;
+	//double diff_;
+	do {
 		sum=0;
-		for (i=0;i<Lx;i++) {
-			for (j=0;j<Ly;j++) {
+		for (int i=0;i<Lx;i++) {
+			for (int j=0;j<Ly;j++) {
 				wn[i][j]=w[i][j]+dtau*(w[bx(i+1)][j]+w[bx(i-1)][j]+w[i][by(j-1)]+w[i][by(j+1)]-4*w[i][j]-(f(a[i][j])+csi[i][j]));
 				sum+=wn[i][j];
 			}
 		}
 		sum/=(Lx*Ly);
 		//diff_ = diff;
-		diff=0;
-		for (i=0;i<Lx;i++) {
-			for (j=0;j<Ly;j++) {
+		double diff = 0;
+		for (int i=0;i<Lx;i++) {
+			for (int j=0;j<Ly;j++) {
 				wn[i][j]=wn[i][j]-sum;
 				diff+=fabs(wn[i][j]-w[i][j]);
 				w[i][j]=wn[i][j];
@@ -470,11 +463,10 @@ void poisson() {
 		//int foo;
 		//if (fabs(diff-diff_) > 1) cin >> foo; 
 		//cerr << "    " << diff << "\n";
-	}
+	} while(diff>tol)
 }
 
 vect2<double> gradxy(vect2<double> V) {
-
 	vect2<double> grad {0,0};
 
 	int cx=(int)V.x;
