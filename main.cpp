@@ -29,7 +29,7 @@ const int rad=5;  // Raio das celulas
 const double vbase=0.01;
 const double valoralfa=0.065;
 
-int nmax=2;  // Numero de tip cells maximo
+int nmax=1;  // Numero de tip cells maximo
 
 //vector<vector<double>> fontes={/*{120,60},{120,70},{120,80},{120,90}*/};//fontes de VEGF
 
@@ -38,7 +38,6 @@ vector<vect2<double>> tips;  // Lista das tip cell
 double vmax,Pmax;
 double a[Lx][Ly],w[Lx][Ly],csi[Lx][Ly],v[Lx][Ly],a_med;
 
-int t;
 int bx(int xx);
 int by(int yy);
 
@@ -52,7 +51,7 @@ int by(int yy){
 
 int main() {
 	double vmenor,vmaior,Pmenor,Pmaior,dv,dP;
-	int passo,iN;
+	int passo;
 	double rand;
 
 	void ini();
@@ -99,18 +98,18 @@ int main() {
 
 	random_device seed;
 	mt19937_64 rand_gen(seed());
-	uniform_real_distribution<double> dist(0.0,1.0);
+	uniform_real_distribution<double> dist01(0.0,1.0);
 
 	//srand48(time(0));
 	passo=1000;
 
-	for (iN=0;iN<4;iN++) {
+	for (int iN=0;iN<4;iN++) {
 		vmax=0.3;
 		Pmax=0.03;
 
 		ini();
 
-		for (t=0;t<100000;t++) {
+		for (int t=0;t<100000;t++) {
 			//cerr << "t=" << t;
 			step();
 			//cerr << " OK\n";
@@ -120,19 +119,22 @@ int main() {
 					grad = gradxy(tips[k]);
 					tips[k] = findxy(tips[k],grad);
 					//tips[k][0]=find(tips[k][0]-2,tips[k][1]);
-					cout<<"Tip "<<k+1<<'\t'<<tips[k].x<<'\t'<<tips[k].x<<'\t'<< grad.x << '\t' << grad.y << '\n';
+					cout << "Tip " << k+1 << " " 
+						<< tips[k].x << " " << tips[k].x << " "
+						<< grad.x << " " << grad.y << '\n';
 				}
 				cout<<'\n';
 				csicalc(tips,double(rad),0);
-				if(fabs(a_med)>20)break;
+				if (fabs(a_med)>20) 
+					break;
 			}
 			if ((t+100) % 500 == 0 && tips.size()<nmax) {
 				//rand=drand48();
-				rand = dist(rand_gen);
+				rand = dist01(rand_gen);
 				if(rand>0.5) newtip();
 			}
 			if ((t+1) % passo == 0)
-				cout << "Novo output!\n";
+				cout << "(Novo output)\n\n";
 #if(teste==1)
 			if ((t+2) % passo == 0)
 				outint(t+2);
@@ -563,7 +565,7 @@ void csicalc(const vector<vect2<double>>& tips, double raio, int index) {
 
 vect2<double> findxy(vect2<double> pos, vect2<double> gradxy) {
 
-	double modulo=sqrt(gradxy.x*gradxy.x+gradxy.y*gradxy.y);
+	const double modulo=sqrt(gradxy.x*gradxy.x+gradxy.y*gradxy.y);
 
 	gradxy.x/=modulo;
 	gradxy.y/=modulo;
@@ -636,6 +638,6 @@ double prolif(int i, int j){
 	return res;
 }
 
-double consumo(int i, int j){
+double consumo(int i, int j) {
 	return (a[i][j]>0 ? (a[i][j]<1 ? 0.1*a[i][j] : 0.1) : 0)*v[i][j];
 }
