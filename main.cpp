@@ -102,7 +102,7 @@ int main() {
 	uniform_real_distribution<double> dist01(0.0,1.0);
 
 	//srand48(time(0));
-	passo = 1000;
+	passo = 500;
 
 	for (int iN=0;iN<1;iN++) {
 		vmax=0.3;
@@ -272,7 +272,7 @@ void newtip() {
 }
 
 void outint (int ff) {
-	char s[20];
+	char s[32];
 	ofstream wout;
 	ofstream aout;
 	ofstream vout;
@@ -280,19 +280,19 @@ void outint (int ff) {
 	ofstream tout;
 	double prolif(int i, int j);
 
-	sprintf(s,"wout_%d",ff);
+	sprintf(s,"data/wout_%d",ff);
 	wout.open(s);
-	sprintf(s,"aout_%d",ff);
+	sprintf(s,"data/aout_%d",ff);
 	aout.open(s);
-	sprintf(s,"vout_%d",ff);
+	sprintf(s,"data/vout_%d",ff);
 	vout.open(s);
-	sprintf(s,"csiout_%d",ff);
+	sprintf(s,"data/csiout_%d",ff);
 	csiout.open(s);
-	sprintf(s,"tout_%d",ff);
+	sprintf(s,"data/tout_%d",ff);
 	tout.open(s);
 
-	for (int i=0;i<Lx;i++){
-		for(int j=0;j<Ly;j++){
+	for (int j=0;j<Ly;j++){
+		for (int i=0;i<Lx;i++){
 			wout<<w[i][j]<<" ";
 			aout<<a[i][j]<<" ";
 			vout<<v[i][j]<<" ";
