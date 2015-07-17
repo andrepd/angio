@@ -113,11 +113,11 @@ int main() {
 		for (t=0;t<100000;t++) {
 			//cerr << "t=" << t;
 			step();
-			cerr << "  ";
-			for (auto i: tips) {
-				cerr << i.x << "," << i.y << " ";
-			}
-			cerr << "\n";
+			//cerr << "  ";
+			//for (auto i: tips) {
+			//	cerr << i.x << "," << i.y << " ";
+			//}
+			//cerr << "\n";
 			//cerr << " OK\n";
 			if ((t+100) % 500 == 0) {
 				cout << "t=" << t << '\n';
@@ -151,12 +151,13 @@ int main() {
 	}
 }
 
+/*
 double medp(vect2<double> V) {
 	double sum = 0;
 	double sumw = 0;
 
-	const int cx = (int)V.x;
-	const int cy = (int)V.y;
+	const int cx = lround(V.x);
+	const int cy = lround(V.y);
 
 	//for (int i=xc-1;i<(xc+rad+1);i++) {
 	//	for (int j=yc-1;j<(yc+rad+1);j++) {
@@ -180,6 +181,7 @@ double medp(vect2<double> V) {
 
 	//return average;
 }
+*/
 
 int maxval(const vector<double>& list) {
 	int res = 0;
@@ -468,17 +470,19 @@ void poisson() {
 	} while(diff>tol);
 }
 
+/*
 vect2<double> gradxy(vect2<double> V) {
 	vect2<double> grad {0,0};
 
-	const int cx=(int)V.x;
-	const int cy=(int)V.y;
+	const int cx = lround(V.x);
+	const int cy = lround(V.y);
 
 	grad.x = (v[cx+1][cy]-v[cx-1][cy])/2.;
 	grad.y = (v[cx][cy+1]-v[cx][cy-1])/2.;
 
 	return grad;
 }
+*/
 
 void csicalc(const vector<vect2<double>>& tips, double raio, int index) {
 	double sum;
@@ -556,6 +560,7 @@ void csicalc(const vector<vect2<double>>& tips, double raio, int index) {
 	//cerr << "DONE\n";
 }
 
+/*
 vect2<double> findxy(vect2<double> pos, vect2<double> gradxy) {
 	const double modulo=sqrt(gradxy.x*gradxy.x+gradxy.y*gradxy.y);
 
@@ -580,6 +585,7 @@ vect2<double> findxy(vect2<double> pos, vect2<double> gradxy) {
 	}
 	return pos;
 }
+*/
 
 // TODO
 double find(double inic, double cy){
