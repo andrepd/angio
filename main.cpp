@@ -16,21 +16,23 @@
 
 using namespace std;
 
+// Struct para um vector bidimensional; declarar com vect2<tipo>
+// Usar para vectores (matemáticos) em vez de usar vectors (do C++)
+// Mais rápido e com sintaxe melhor (v.x,v.y em vez de v[0],v[1])
 template <class T>
 struct vect2 {
 	T x,y;
 };
 
-const int Lx=128,Ly=128;  // Dimensoes da grelha
-const double medini=-0.2,ge=0.126;
-const double Amp=10.55;  // Amplitude da forca
-const double D=11;
-const double dt=0.02;  // Passo de tempo
-const int rad=5;  // Raio das celulas
-const double vbase=0.01;
-const double valoralfa=0.065;
-
-const int nmax=2;  // Numero de tip cells maximo
+const int    Lx = 128, Ly = 128;  // Dimensoes da grelha
+const double medini = -0.2, ge = 0.126;
+const double Amp = 10.55;  // Amplitude da forca
+const double D = 11;
+const double dt = 0.02;  // Passo de tempo
+const int    rad = 5;  // Raio das celulas
+const double vbase = 0.01;
+const double valoralfa = 0.065;
+const int    nmax = 2;  // Numero de tip cells maximo
 
 //vector<vector<double>> fontes={/*{120,60},{120,70},{120,80},{120,90}*/};//fontes de VEGF
 
@@ -38,9 +40,6 @@ vector<vect2<double>> tips;  // Lista das tip cell
 
 double vmax,Pmax;
 double a[Lx][Ly],w[Lx][Ly],csi[Lx][Ly],v[Lx][Ly],a_med;
-
-int bx(int xx);
-int by(int yy);
 
 int bx(int xx){
 	return (xx+Lx)%Lx;
@@ -58,19 +57,19 @@ int main() {
 
 	void ini();
 	void step();
-	void out(double x,double y);
+	void out(double x, double y);
 	void outint(int ff);
 	void csicalc(const vector<vect2<double>>& tips, double raio, int index);
 	void newtip();
 
-	double find(double inic,double cy);
+	double find(double inic, double cy);
 	double medp(vect2<double>);
 
 	int neigh(int i,int j);
 
 	vect2<double> findxy(vect2<double> pos, vect2<double> gradxy);
 	vect2<double> gradxy(vect2<double> V); 
-	vect2<double> grad {0,0};
+	//vect2<double> grad {0,0};
 
 	ofstream resultados("res");
 
@@ -103,22 +102,27 @@ int main() {
 	uniform_real_distribution<double> dist01(0.0,1.0);
 
 	//srand48(time(0));
-	passo=1000;
+	passo = 1000;
 
-	for (int iN=0;iN<4;iN++) {
+	for (int iN=0;iN<1;iN++) {
 		vmax=0.3;
 		Pmax=0.03;
 
 		ini();
 
-		for (t=0;t<10000;t++) {
+		for (t=0;t<100000;t++) {
 			//cerr << "t=" << t;
 			step();
+			cerr << "  ";
+			for (auto i: tips) {
+				cerr << i.x << "," << i.y << " ";
+			}
+			cerr << "\n";
 			//cerr << " OK\n";
 			if ((t+100) % 500 == 0) {
 				cout << "t=" << t << '\n';
 				for (int k=0;k<tips.size();k++) {
-					grad = gradxy(tips[k]);
+					const auto grad = gradxy(tips[k]);
 					tips[k] = findxy(tips[k],grad);
 					//tips[k][0]=find(tips[k][0]-2,tips[k][1]);
 					cout << "Tip " << k+1 << " " 
@@ -336,7 +340,7 @@ void ini() {
 	a_med=0;
 	for (int i=0;i<Lx;i++){
 		for (int j=0;j<Ly;j++){
-			a[i][j] = i<Lx/5+10 && i>Lx/5 ? 1 : -1;
+			a[i][j] = i>Lx/5 && i<Lx/5+10 ? 1 : -1;
 			w[i][j] = 0;
 			csi[i][j] = 0;
 			v[i][j] = ((double)i)/(Lx-1);
@@ -477,8 +481,6 @@ vect2<double> gradxy(vect2<double> V) {
 }
 
 void csicalc(const vector<vect2<double>>& tips, double raio, int index) {
-	double diff,dtau;
-	double tol;
 	double sum;
 	double Force[Lx][Ly];
 	double Force_[Lx][Ly];
@@ -486,8 +488,8 @@ void csicalc(const vector<vect2<double>>& tips, double raio, int index) {
 	ofstream csiout;
 	char s[20];
 	//double cx=0,cy=0,cynew,cxnew;
-	vect2<double> vgrad {0,0};
-	double dir=0;
+	//vect2<double> vgrad {0,0};
+	//double dir=0;
 
 	for(int i=0;i<Lx;i++) {
 		for(int j=0;j<Ly;j++){
@@ -495,7 +497,7 @@ void csicalc(const vector<vect2<double>>& tips, double raio, int index) {
 			Force_[i][j] = 0.;
 			for(int k=0;k<tips.size();k++) {	
 
-				vgrad = gradxy(tips[k]);
+				const vect2<double> vgrad = gradxy(tips[k]);
 				//dir=atan(vgrad.y/vgrad.x);
 				const double cos_ = vgrad.x/(sqrt(vgrad.x*vgrad.x+vgrad.y*vgrad.y));
 				const double sin_ = vgrad.y/(sqrt(vgrad.x*vgrad.x+vgrad.y*vgrad.y));
@@ -519,11 +521,13 @@ void csicalc(const vector<vect2<double>>& tips, double raio, int index) {
 		}
 	}
 
-	tol=1E-7;
-	dtau=0.24;
+	const double tol=1E-7;
+	const double dtau=0.24;
 
-	diff=tol+1;
-	while(diff>tol){
+	double diff;
+	do {
+		// TODO
+		diff = 0;
 		for(int i=1;i<Lx-1;i++){
 			for(int j=1;j<Ly-1;j++){
 				csin[i][j]=csi[i][j]+dtau*(csi[bx(i+1)][j]+csi[bx(i-1)][j]+csi[i][by(j-1)]+csi[i][by(j+1)]-4*csi[i][j]-Force[i][j]);
@@ -537,7 +541,7 @@ void csicalc(const vector<vect2<double>>& tips, double raio, int index) {
 		}
 		diff/=(Lx*Ly);
 		//cerr << "  " << diff << "\n";
-	}
+	} while(diff>tol);
 
 	sprintf(s,"cout.%d",index);
 	csiout.open(s);
