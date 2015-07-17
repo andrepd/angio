@@ -151,7 +151,6 @@ int main() {
 	}
 }
 
-/*
 double medp(vect2<double> V) {
 	double sum = 0;
 	double sumw = 0;
@@ -181,7 +180,6 @@ double medp(vect2<double> V) {
 
 	//return average;
 }
-*/
 
 int maxval(const vector<double>& list) {
 	int res = 0;
@@ -279,6 +277,7 @@ void outint (int ff) {
 	ofstream aout;
 	ofstream vout;
 	ofstream csiout;
+	ofstream tout;
 	double prolif(int i, int j);
 
 	sprintf(s,"wout_%d",ff);
@@ -289,6 +288,8 @@ void outint (int ff) {
 	vout.open(s);
 	sprintf(s,"csiout_%d",ff);
 	csiout.open(s);
+	sprintf(s,"tout_%d",ff);
+	tout.open(s);
 
 	for (int i=0;i<Lx;i++){
 		for(int j=0;j<Ly;j++){
@@ -302,10 +303,14 @@ void outint (int ff) {
 		vout<<"\n";
 		csiout<<"\n";
 	}
+	for (int i=0; i<tips.size(); i++) {
+		tout << tips[i].x << " " << tips[i].y << "\n";
+	}
 	aout.close();
 	wout.close();
 	vout.close();
 	csiout.close();
+	tout.close();
 }
 
 void out(double x, double y){
@@ -470,7 +475,6 @@ void poisson() {
 	} while(diff>tol);
 }
 
-/*
 vect2<double> gradxy(vect2<double> V) {
 	vect2<double> grad {0,0};
 
@@ -482,7 +486,6 @@ vect2<double> gradxy(vect2<double> V) {
 
 	return grad;
 }
-*/
 
 void csicalc(const vector<vect2<double>>& tips, double raio, int index) {
 	double sum;
@@ -560,7 +563,6 @@ void csicalc(const vector<vect2<double>>& tips, double raio, int index) {
 	//cerr << "DONE\n";
 }
 
-/*
 vect2<double> findxy(vect2<double> pos, vect2<double> gradxy) {
 	const double modulo=sqrt(gradxy.x*gradxy.x+gradxy.y*gradxy.y);
 
@@ -585,7 +587,6 @@ vect2<double> findxy(vect2<double> pos, vect2<double> gradxy) {
 	}
 	return pos;
 }
-*/
 
 // TODO
 double find(double inic, double cy){
