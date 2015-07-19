@@ -25,6 +25,10 @@ struct vect2 {
 	T x,y;
 };
 
+inline double sq(double x) {
+	return x*x;
+}
+
 const int    Lx = 128, Ly = 128;  // Dimensoes da grelha
 const double medini = -0.2, ge = 0.126;
 const double Amp = 10.55;  // Amplitude da forca
@@ -131,7 +135,7 @@ int main() {
 					const auto grad = gradxy(tips[k]);
 					tips[k] = findxy(tips[k],grad);
 					//tips[k][0]=find(tips[k][0]-2,tips[k][1]);
-					if (tips[k].x > Lx-4 || tips[k].x < 4) {
+					if (tips[k].x > Lx-1-rad || tips[k].x < rad) {
 						cout << "Tip " << k+1 << " out of bounds.\n";
 						return -1;
 					}
@@ -147,14 +151,14 @@ int main() {
 					nchunks++;
 				}
 
-				csicalc(tips,double(rad),0);
+				csicalc(tips, double(rad), 0);
 				if (fabs(a_med)>20) 
 					break;
 			}
-			if ((t+100) % 500 == 0 && tips.size()<nmax) {
+			if ((t+100) % passotips == 0 && tips.size()<nmax) {
 				//rand=drand48();
-				rand = dist01(rand_gen);
-				if(rand>0.5) 
+				//rand = dist01(rand_gen);
+				//if(rand>0.5) 
 					newtip();
 			}
 			if ((t+1) % passo == 0)
@@ -423,8 +427,12 @@ void step() {
 	ch();
 }
 
+inline double f(double z){
+	return -valoralfa*z;
+}
+
 void ch() {
-	double f(double z);
+	//double f(double z);
 	double Q[Lx][Ly],mu[Lx][Ly],an[Lx][Ly],vn[Lx][Ly],aloc;
 	double I1[Lx][Ly],I2[Lx][Ly],I3[Lx][Ly],IE[Lx][Ly];
 	double prolif(int i, int j);
@@ -501,10 +509,10 @@ void ch() {
 }
 
 void poisson() {
-	double f(double z);
+	//double f(double z);
 	double wn[Lx][Ly];
+	const double tol = 1E-4;
 	const double dtau = 0.24;
-	const double tol = 1E-3;
 
 	double diff;
 	//double diff_;
@@ -548,7 +556,7 @@ vect2<double> gradxy(vect2<double> V) {
 void csicalc(const vector<vect2<double>>& tips, double raio, int index) {
 	double sum;
 	double Force[Lx][Ly];
-	double Force_[Lx][Ly];
+	//double Force_[Lx][Ly];
 	double csin[Lx][Ly];
 	ofstream csiout;
 	char s[20];
@@ -556,11 +564,11 @@ void csicalc(const vector<vect2<double>>& tips, double raio, int index) {
 	//vect2<double> vgrad {0,0};
 	//double dir=0;
 
-	for(int i=0;i<Lx;i++) {
-		for(int j=0;j<Ly;j++){
+	for (int i=0;i<Lx;i++) {
+		for (int j=0;j<Ly;j++){
 			Force[i][j] = 0.;
-			Force_[i][j] = 0.;
-			for(int k=0;k<tips.size();k++) {	
+			//Force_[i][j] = 0.;
+			for (int k=0;k<tips.size();k++) {	
 
 				const vect2<double> vgrad = gradxy(tips[k]);
 				//dir=atan(vgrad.y/vgrad.x);
@@ -586,13 +594,13 @@ void csicalc(const vector<vect2<double>>& tips, double raio, int index) {
 		}
 	}
 
-	const double tol=1E-7;
+	const double tol=1E-4;
 	const double dtau=0.24;
 
 	double diff;
 	do {
 		// TODO
-		diff = 0;
+		//diff = 0;
 		for(int i=1;i<Lx-1;i++){
 			for(int j=1;j<Ly-1;j++){
 				csin[i][j]=csi[i][j]+dtau*(csi[bx(i+1)][j]+csi[bx(i-1)][j]+csi[i][by(j-1)]+csi[i][by(j+1)]-4*csi[i][j]-Force[i][j]);
@@ -613,9 +621,9 @@ void csicalc(const vector<vect2<double>>& tips, double raio, int index) {
 
 	for (int i=0;i<Lx;i++){
 		for (int j=0;j<Ly;j++){
-			csiout<<csi[i][j]<<" ";
+			csiout << csi[i][j] << " ";
 		}
-		csiout<<"\n";
+		csiout << "\n";
 	}
 	csiout.close();
 	//cerr << "DONE\n";
@@ -647,6 +655,7 @@ vect2<double> findxy(vect2<double> pos, vect2<double> gradxy) {
 }
 
 // TODO
+/*
 double find(double inic, double cy){
 	int res1,res2,med;
 
@@ -662,10 +671,7 @@ double find(double inic, double cy){
 
 	return resultado;
 }
-
-double f(double z){
-	return -valoralfa*z;
-}
+*/
 
 double prolif(int i, int j){
 	if (a[i][j]<=0.5) 
@@ -675,7 +681,7 @@ double prolif(int i, int j){
 		int n=0;
 		for (int x=i-rad;x<=i+rad;x++) {
 			for (int y=j-rad;y<=j+rad;y++) {
-				if ((x-i)*(x-i)+(y-j)*(y-j)<=rad*rad) {
+				if (sq(x-i)+sq(y-j) <= sq(rad)) {
 					const double ra = v[bx(x)][by(y)];
 					const double aloc = a[bx(x)][by(y)];
 					const double rc = csi[bx(x)][by(y)]-valoralfa*aloc;
