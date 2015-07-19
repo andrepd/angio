@@ -10,6 +10,7 @@
 //#include <omp.h>
 #include <random>
 //#include <chrono>
+#include <stack>
 
 #define alfa 1
 #define teste 1
@@ -32,7 +33,7 @@ const double dt = 0.02;  // Passo de tempo
 const int    rad = 5;  // Raio das celulas
 const double vbase = 0.01;
 const double valoralfa = 0.065;
-const int    nmax = 2;  // Numero de tip cells maximo
+const int    nmax = 4;  // Numero de tip cells maximo
 
 //vector<vector<double>> fontes={/*{120,60},{120,70},{120,80},{120,90}*/};//fontes de VEGF
 
@@ -71,6 +72,8 @@ int main() {
 	vect2<double> gradxy(vect2<double> V); 
 	//vect2<double> grad {0,0};
 
+	int count_chunks();
+
 	ofstream resultados("res");
 
 	tips.push_back({Lx/5+10,Ly/2.});
@@ -103,14 +106,17 @@ int main() {
 
 	//srand48(time(0));
 	passo = 500;
-
-	for (int iN=0;iN<1;iN++) {
+	const int passotips = 500;
+	const int iNf=1, tf=100000;
+	int nchunks = 1;
+	
+	for (int iN=0;iN<iNf;iN++) {
 		vmax=0.3;
 		Pmax=0.03;
 
 		ini();
 
-		for (t=0;t<100000;t++) {
+		for (t=0;t<tf;t++) {
 			//cerr << "t=" << t;
 			step();
 			//cerr << "  ";
@@ -119,17 +125,28 @@ int main() {
 			//}
 			//cerr << "\n";
 			//cerr << " OK\n";
-			if ((t+100) % 500 == 0) {
+			if ((t+100) % passotips	== 0) {
 				cout << "t=" << t << '\n';
 				for (int k=0;k<tips.size();k++) {
 					const auto grad = gradxy(tips[k]);
 					tips[k] = findxy(tips[k],grad);
 					//tips[k][0]=find(tips[k][0]-2,tips[k][1]);
+					if (tips[k].x > Lx-4 || tips[k].x < 4) {
+						cout << "Tip " << k+1 << " out of bounds.\n";
+						return -1;
+					}
 					cout << "Tip " << k+1 << " " 
-						<< tips[k].x << " " << tips[k].x << " "
+						<< tips[k].x << " " << tips[k].y << " "
 						<< grad.x << " " << grad.y << '\n';
 				}
 				cout<<'\n';
+
+				//cout << count_chunks() << "\n";
+				if (count_chunks() > nchunks) {
+					cout << "Vasos partidos!\n\n";
+					nchunks++;
+				}
+
 				csicalc(tips,double(rad),0);
 				if (fabs(a_med)>20) 
 					break;
@@ -137,7 +154,8 @@ int main() {
 			if ((t+100) % 500 == 0 && tips.size()<nmax) {
 				//rand=drand48();
 				rand = dist01(rand_gen);
-				if(rand>0.5) newtip();
+				if(rand>0.5) 
+					newtip();
 			}
 			if ((t+1) % passo == 0)
 				cout << "(Novo output)\n\n";
@@ -149,6 +167,46 @@ int main() {
 		resultados << Pmax << "\t" << vmax << "\t" << a_med << "\t" << t*dt << "\n";
 		cout       << Pmax << "\t" << vmax << "\t" << a_med << "\t" << t*dt << "\n";
 	}
+}
+
+int count_chunks() {
+	bool V[Lx][Ly];
+	for (int i=0; i<Lx; i++) {
+		for (int j=0; j<Ly; j++) {
+			V[i][j] = 0;
+		}
+	}
+	int r = 0;
+	for (int i=0; i<Lx; i++) {
+		for (int j=0; j<Ly; j++) {
+			if (V[i][j] || a[i][j] < 0)
+				continue;
+			r++;
+			stack<vect2<int>> s;
+			s.push(vect2<int> {i,j});
+			while (!s.empty()) {
+				auto top = s.top();
+				s.pop();
+				if (!V[top.x+1][top.y] && a[top.x+1][top.y] > 0) {
+					s.push(vect2<int> {top.x+1,top.y});
+					V[top.x+1][top.y] = 1;
+				}
+				if (!V[top.x-1][top.y] && a[top.x-1][top.y] > 0) {
+					s.push(vect2<int> {top.x-1,top.y});
+					V[top.x-1][top.y] = 1;
+				}
+				if (!V[top.x][top.y+1] && a[top.x][top.y+1] > 0) {
+					s.push(vect2<int> {top.x,top.y+1});
+					V[top.x][top.y+1] = 1;
+				}
+				if (!V[top.x][top.y-1] && a[top.x][top.y-1] > 0) {
+					s.push(vect2<int> {top.x,top.y-1});
+					V[top.x][top.y-1] = 1;
+				}
+			}
+		}
+	}
+	return r;
 }
 
 double medp(vect2<double> V) {
