@@ -25,7 +25,8 @@ struct vect2 {
 	T x,y;
 };
 
-inline double sq(double x) {
+// Usar como atalho para x*x, equivalente
+template <typename T> inline T sq(T x) {
 	return x*x;
 }
 
@@ -46,11 +47,10 @@ vector<vect2<double>> tips;  // Lista das tip cell
 double vmax,Pmax;
 double a[Lx][Ly],w[Lx][Ly],csi[Lx][Ly],v[Lx][Ly],a_med;
 
-int bx(int xx){
+int bx(int xx) {
 	return (xx+Lx)%Lx;
 }
-
-int by(int yy){
+int by(int yy) {
 	return (yy+Ly)%Ly;
 }
 
@@ -512,10 +512,11 @@ void poisson() {
 	//double f(double z);
 	double wn[Lx][Ly];
 	const double tol = 1E-4;
-	const double dtau = 0.24;
+	double dtau = 0.24;
 
 	double diff;
-	//double diff_;
+	cerr << "POISSON\n";
+	double diff_ = 1e3;
 	do {
 		double sum=0;
 		for (int i=0;i<Lx;i++) {
@@ -535,10 +536,36 @@ void poisson() {
 			}
 		}
 		diff/=(Lx*Ly);
+
+		if (diff - diff_ > 0) {
+			sum = 0;
+			for (int i=0;i<Lx;i++) {
+				for (int j=0;j<Ly;j++) {
+					wn[i][j]=w[i][j]-dtau*(w[bx(i+1)][j]+w[bx(i-1)][j]+w[i][by(j-1)]+w[i][by(j+1)]-4*w[i][j]-(f(a[i][j])+csi[i][j]));
+					sum+=wn[i][j];
+				}
+			}
+			sum /= Lx*Ly;
+
+			//diff = 0
+			for (int i=0;i<Lx;i++) {
+				for (int j=0;j<Ly;j++) {
+					wn[i][j]=wn[i][j]-sum;
+					//diff+=fabs(wn[i][j]-w[i][j]);
+					w[i][j]=wn[i][j];
+				}
+			}
+			dtau = 0.24;
+		} else {
+			dtau *= 1.3;
+		}
 		//int foo;
 		//if (fabs(diff-diff_) > 1) cin >> foo; 
-		//cerr << "    " << diff << "\n";
+		cerr << "  " << diff << " " << diff-diff_ << "\n";
+		diff_ = diff;
 	} while(diff>tol);
+	int foo;
+	cin >> foo;
 }
 
 vect2<double> gradxy(vect2<double> V) {
@@ -594,27 +621,49 @@ void csicalc(const vector<vect2<double>>& tips, double raio, int index) {
 		}
 	}
 
-	const double tol=1E-4;
-	const double dtau=0.24;
+	const double tol = 1E-4;
+	double dtau = 0.24;
 
 	double diff;
+	cerr << "CSICALC\n";
+	double diff_ = 1e3;
 	do {
 		// TODO
 		//diff = 0;
-		for(int i=1;i<Lx-1;i++){
-			for(int j=1;j<Ly-1;j++){
+		for (int i=1;i<Lx-1;i++) {
+			for (int j=1;j<Ly-1;j++) {
 				csin[i][j]=csi[i][j]+dtau*(csi[bx(i+1)][j]+csi[bx(i-1)][j]+csi[i][by(j-1)]+csi[i][by(j+1)]-4*csi[i][j]-Force[i][j]);
 				diff+=fabs(csin[i][j]-csi[i][j]);
 			}
 		}
-		for(int i=0;i<Lx;i++){
-			for(int j=0;j<Ly;j++){
+		for (int i=0;i<Lx;i++) {
+			for (int j=0;j<Ly;j++) {
 				csi[i][j]=csin[i][j];
 			}
 		}
 		diff/=(Lx*Ly);
-		//cerr << "  " << diff << "\n";
+		
+		if (diff-diff_ > 0) {
+			for (int i=1;i<Lx-1;i++) {
+				for (int j=1;j<Ly-1;j++) {
+					csin[i][j]=csi[i][j]-dtau*(csi[bx(i+1)][j]+csi[bx(i-1)][j]+csi[i][by(j-1)]+csi[i][by(j+1)]-4*csi[i][j]-Force[i][j]);
+					//diff+=fabs(csin[i][j]-csi[i][j]);
+				}
+			}
+			for (int i=0;i<Lx;i++) {
+				for (int j=0;j<Ly;j++) {
+					csi[i][j]=csin[i][j];
+				}
+			}
+			dtau = 0.24;
+		} else {
+			dtau *= 1.3;
+		}
+		cerr << "  " << diff << " " << diff-diff_ << "\n";
+		diff = diff_;
 	} while(diff>tol);
+	int foo;
+	cin >> foo;
 
 	sprintf(s,"cout.%d",index);
 	csiout.open(s);
