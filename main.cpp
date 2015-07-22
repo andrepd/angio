@@ -515,12 +515,14 @@ void poisson() {
 	const double dtau0 = 0.24;
 
 	double dtau = dtau0;
-	double dtau_ = dtau;
+	//double dtau_ = dtau;
 	double diff;
 	//cerr << "POISSON\n";
 	double diff_ = 1e3;
 	int q = 0;
+	int qq = 0;
 	do {
+		qq++;
 		double sum=0;
 		for (int i=0;i<Lx;i++) {
 			for (int j=0;j<Ly;j++) {
@@ -549,7 +551,7 @@ void poisson() {
 				}
 			}
 			if (q > 4) {
-				dtau_ = dtau;
+				//dtau_ = dtau;
 				dtau *= 1.3;
 			} else {
 				q++;
@@ -561,11 +563,14 @@ void poisson() {
 
 		//int foo;
 		//if (fabs(diff-diff_) > 1) cin >> foo; 
-		cerr << "  " << diff << " " << diff-diff_ << " " << dtau << "\n";
+		//cerr << "  " << diff << " " << diff-diff_ << " " << dtau << "\n";
 		diff_ = diff;
 	} while(diff>tol);
-	//int foo;
-	//cin >> foo;
+	cerr << ">P " << qq << "\n";
+	if (qq > 16) {
+		int foo;
+		cin >> foo;
+	}
 }
 
 vect2<double> gradxy(vect2<double> V) {
@@ -625,12 +630,14 @@ void csicalc(const vector<vect2<double>>& tips, double raio, int index) {
 	const double dtau0 = 0.24;
 
 	double dtau = dtau0;
-	double dtau_ = dtau;
+	//double dtau_ = dtau;
 	double diff;
 	//cerr << "CSICALC\n";
 	double diff_ = 1e3;
 	int q = 0;
+	int qq=0;
 	do {
+		qq++;
 		// TODO
 		//diff = 0;
 		for (int i=1;i<Lx-1;i++) {
@@ -642,6 +649,7 @@ void csicalc(const vector<vect2<double>>& tips, double raio, int index) {
 		diff/=(Lx*Ly);
 		//cerr << "  " << diff << "\n";
 		diff*=dtau0/dtau;
+
 		if (diff-diff_ <= 0) {
 			for (int i=0;i<Lx;i++) {
 				for (int j=0;j<Ly;j++) {
@@ -649,7 +657,7 @@ void csicalc(const vector<vect2<double>>& tips, double raio, int index) {
 				}
 			}
 			if (q > 4) {
-				dtau_ = dtau;
+				//dtau_ = dtau;
 				dtau *= 1.3;
 			} else {
 				q++;
@@ -659,11 +667,14 @@ void csicalc(const vector<vect2<double>>& tips, double raio, int index) {
 			dtau = dtau0;
 		}
 		
-		cerr << "  " << diff << " " << diff-diff_ << " " << dtau << "\n";
-		diff = diff_;
+		//cerr << "  " << diff << " " << diff-diff_ << " " << dtau << "\n";
+		diff_ = diff;
 	} while(diff>tol);
-	//int foo;
-	//cin >> foo;
+	cerr << ">C " << qq << "\n";
+	if (qq > 16) {
+		int foo;
+		cin >> foo;
+	}
 
 	sprintf(s,"cout.%d",index);
 	csiout.open(s);
