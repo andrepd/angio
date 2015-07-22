@@ -512,7 +512,7 @@ void poisson() {
 	//double f(double z);
 	double wn[Lx][Ly];
 	const double tol = 1E-4;
-	double dtau0 = 0.24;
+	const double dtau0 = 0.24;
 
 	double dtau = dtau0;
 	double dtau_ = dtau;
@@ -539,7 +539,7 @@ void poisson() {
 			}
 		}
 		diff/=(Lx*Ly);
-		cerr << "  " << diff << "\n";
+		//cerr << "  " << diff << "\n";
 		diff*=dtau0/dtau;
 
 		if (diff-diff_ <= 0) {
@@ -561,7 +561,7 @@ void poisson() {
 
 		//int foo;
 		//if (fabs(diff-diff_) > 1) cin >> foo; 
-		//cerr << "  " << diff << " " << diff-diff_ << " " << dtau << "\n";
+		cerr << "  " << diff << " " << diff-diff_ << " " << dtau << "\n";
 		diff_ = diff;
 	} while(diff>tol);
 	//int foo;
@@ -640,9 +640,9 @@ void csicalc(const vector<vect2<double>>& tips, double raio, int index) {
 			}
 		}
 		diff/=(Lx*Ly);
-		cerr << "  " << diff << "\n";
+		//cerr << "  " << diff << "\n";
 		diff*=dtau0/dtau;
-		if (diff-diff_ < 0) {
+		if (diff-diff_ <= 0) {
 			for (int i=0;i<Lx;i++) {
 				for (int j=0;j<Ly;j++) {
 					csi[i][j]=csin[i][j];
@@ -659,7 +659,7 @@ void csicalc(const vector<vect2<double>>& tips, double raio, int index) {
 			dtau = dtau0;
 		}
 		
-		//cerr << "  " << diff << " " << diff-diff_ << " " << dtau << "\n";
+		cerr << "  " << diff << " " << diff-diff_ << " " << dtau << "\n";
 		diff = diff_;
 	} while(diff>tol);
 	//int foo;
