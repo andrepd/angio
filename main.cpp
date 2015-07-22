@@ -621,7 +621,7 @@ void csicalc(const vector<vect2<double>>& tips, double raio, int index) {
 		}
 	}
 
-	const double tol = 1E-4;
+	const double tol = 1E-6;
 	double dtau = 0.24;
 
 	double diff;
