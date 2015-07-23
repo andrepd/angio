@@ -541,11 +541,11 @@ void poisson() {
 		//if (fabs(diff-diff_) > 1) cin >> foo; 
 		//cerr << "    " << diff << "\n";
 	} while(diff>tol);
-	cerr << ">" << qq << "\n";
-	if (qq > 16) {
-		int foo;
-		cin >> foo;
-	}
+	cerr << ">P " << qq << "\n";
+	//if (qq > 16) {
+		//int foo;
+		//cin >> foo;
+	//}
 }
 
 vect2<double> gradxy(vect2<double> V) {
@@ -624,11 +624,11 @@ void csicalc(const vector<vect2<double>>& tips, double raio, int index) {
 		diff/=(Lx*Ly);
 		//cerr << "  " << diff << "\n";
 	} while(diff>tol);
-	cerr << ">" << qq << "\n";
-	if (qq > 16) {
-		int foo;
-		cin >> foo;
-	}
+	cerr << ">C " << qq << "\n";
+	//if (qq > 16) {
+	//	int foo;
+	//	cin >> foo;
+	//}
 
 	sprintf(s,"cout.%d",index);
 	csiout.open(s);
