@@ -521,6 +521,7 @@ void poisson() {
 	double diff_ = 1e3;
 	int q = 0;
 	int qq = 0;
+	int cap = 64;
 	do {
 		qq++;
 		double sum=0;
@@ -550,13 +551,13 @@ void poisson() {
 					w[i][j]=wn[i][j];
 				}
 			}
-			if (q > 4) {
+			if (q < cap) {
 				//dtau_ = dtau;
-				dtau *= 1.3;
-			} else {
+				dtau *= 2;
 				q++;
-			}
+			} 
 		} else {
+			cap = q;
 			q = 0;
 			dtau = dtau0;
 		}
@@ -567,10 +568,10 @@ void poisson() {
 		diff_ = diff;
 	} while(diff>tol);
 	cerr << ">P " << qq << "\n";
-	if (qq > 16) {
-		int foo;
-		cin >> foo;
-	}
+	//if (qq > 16) {
+	//	int foo;
+	//	cin >> foo;
+	//}
 }
 
 vect2<double> gradxy(vect2<double> V) {
@@ -635,7 +636,8 @@ void csicalc(const vector<vect2<double>>& tips, double raio, int index) {
 	//cerr << "CSICALC\n";
 	double diff_ = 1e3;
 	int q = 0;
-	int qq=0;
+	int qq = 0;
+	int cap = 64;
 	do {
 		qq++;
 		// TODO
@@ -656,13 +658,13 @@ void csicalc(const vector<vect2<double>>& tips, double raio, int index) {
 					csi[i][j]=csin[i][j];
 				}
 			}
-			if (q > 4) {
+			if (q < cap) {
 				//dtau_ = dtau;
-				dtau *= 1.3;
-			} else {
+				dtau *= 2;
 				q++;
 			}
 		} else {
+			cap = q;
 			q = 0;
 			dtau = dtau0;
 		}
@@ -671,10 +673,10 @@ void csicalc(const vector<vect2<double>>& tips, double raio, int index) {
 		diff_ = diff;
 	} while(diff>tol);
 	cerr << ">C " << qq << "\n";
-	if (qq > 16) {
-		int foo;
-		cin >> foo;
-	}
+	//if (qq > 16) {
+	//	int foo;
+	//	cin >> foo;
+	//}
 
 	sprintf(s,"cout.%d",index);
 	csiout.open(s);
