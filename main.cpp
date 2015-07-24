@@ -297,6 +297,8 @@ void newtip() {
 	vector<double> vegf ((Lx-2)*(Ly-2), 0.);
    	vect2<int> pick, point;
 
+	//cout << "NEWTIP";
+
 	int pos = 0;
 	for (int i=1;i<Lx-1;i++) {
 		for (int j=1;j<Ly-1;j++) {
@@ -520,10 +522,10 @@ void poisson() {
 	//cerr << "POISSON\n";
 	double diff_ = 1e3;
 	int q = 0;
-	int qq = 0;
+	//int qq = 0;
 	int cap = 64;
 	do {
-		qq++;
+		//qq++;
 		double sum=0;
 		for (int i=0;i<Lx;i++) {
 			for (int j=0;j<Ly;j++) {
@@ -567,7 +569,7 @@ void poisson() {
 		//cerr << "  " << diff << " " << diff-diff_ << " " << dtau << "\n";
 		diff_ = diff;
 	} while(diff>tol);
-	cerr << ">P " << qq << "\n";
+	//cerr << ">P " << qq << "\n";
 	//if (qq > 16) {
 	//	int foo;
 	//	cin >> foo;
@@ -636,10 +638,10 @@ void csicalc(const vector<vect2<double>>& tips, double raio, int index) {
 	//cerr << "CSICALC\n";
 	double diff_ = 1e3;
 	int q = 0;
-	int qq = 0;
+	//int qq = 0;
 	int cap = 64;
 	do {
-		qq++;
+		//qq++;
 		// TODO
 		//diff = 0;
 		for (int i=1;i<Lx-1;i++) {
@@ -672,7 +674,7 @@ void csicalc(const vector<vect2<double>>& tips, double raio, int index) {
 		//cerr << "  " << diff << " " << diff-diff_ << " " << dtau << "\n";
 		diff_ = diff;
 	} while(diff>tol);
-	cerr << ">C " << qq << "\n";
+	//cerr << ">C " << qq << "\n";
 	//if (qq > 16) {
 	//	int foo;
 	//	cin >> foo;
