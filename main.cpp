@@ -25,7 +25,8 @@ struct vect2 {
 	T x,y;
 };
 
-inline double sq(double x) {
+// Usar como atalho para x*x, equivalente
+template <typename T> inline T sq(T x) {
 	return x*x;
 }
 
@@ -46,11 +47,10 @@ vector<vect2<double>> tips;  // Lista das tip cell
 double vmax,Pmax;
 double a[Lx][Ly],w[Lx][Ly],csi[Lx][Ly],v[Lx][Ly],a_med;
 
-int bx(int xx){
+int bx(int xx) {
 	return (xx+Lx)%Lx;
 }
-
-int by(int yy){
+int by(int yy) {
 	return (yy+Ly)%Ly;
 }
 
@@ -297,6 +297,8 @@ void newtip() {
 	vector<double> vegf ((Lx-2)*(Ly-2), 0.);
    	vect2<int> pick, point;
 
+	//cout << "NEWTIP";
+
 	int pos = 0;
 	for (int i=1;i<Lx-1;i++) {
 		for (int j=1;j<Ly-1;j++) {
@@ -512,13 +514,25 @@ void poisson() {
 	//double f(double z);
 	double wn[Lx][Ly];
 	const double tol = 1E-4;
-	const double dtau = 0.24;
+	const double dtau0 = 0.24;
 
+	double dtau = dtau0;
+	//double dtau_ = dtau;
 	double diff;
+<<<<<<< HEAD
 	//double diff_;
 	int qq = 0;
 	do {
 		qq++;
+=======
+	//cerr << "POISSON\n";
+	double diff_ = 1e3;
+	int q = 0;
+	//int qq = 0;
+	int cap = 64;
+	do {
+		//qq++;
+>>>>>>> fast_converge
 		double sum=0;
 		for (int i=0;i<Lx;i++) {
 			for (int j=0;j<Ly;j++) {
@@ -527,24 +541,52 @@ void poisson() {
 			}
 		}
 		sum/=(Lx*Ly);
+		//sum*=dtau_/dtau;
 		//diff_ = diff;
 		diff = 0;
 		for (int i=0;i<Lx;i++) {
 			for (int j=0;j<Ly;j++) {
 				wn[i][j]=wn[i][j]-sum;
 				diff+=fabs(wn[i][j]-w[i][j]);
-				w[i][j]=wn[i][j];
 			}
 		}
 		diff/=(Lx*Ly);
+		//cerr << "  " << diff << "\n";
+		diff*=dtau0/dtau;
+
+		if (diff-diff_ <= 0) {
+			for (int i=0;i<Lx;i++) {
+				for (int j=0;j<Ly;j++) {
+					w[i][j]=wn[i][j];
+				}
+			}
+			if (q < cap) {
+				//dtau_ = dtau;
+				dtau *= 2;
+				q++;
+			} 
+		} else {
+			cap = q;
+			q = 0;
+			dtau = dtau0;
+		}
+
 		//int foo;
 		//if (fabs(diff-diff_) > 1) cin >> foo; 
-		//cerr << "    " << diff << "\n";
+		//cerr << "  " << diff << " " << diff-diff_ << " " << dtau << "\n";
+		diff_ = diff;
 	} while(diff>tol);
+<<<<<<< HEAD
 	cerr << ">P " << qq << "\n";
 	//if (qq > 16) {
 		//int foo;
 		//cin >> foo;
+=======
+	//cerr << ">P " << qq << "\n";
+	//if (qq > 16) {
+	//	int foo;
+	//	cin >> foo;
+>>>>>>> fast_converge
 	//}
 }
 
@@ -601,30 +643,67 @@ void csicalc(const vector<vect2<double>>& tips, double raio, int index) {
 		}
 	}
 
+<<<<<<< HEAD
 	const double tol=1E-6;
 	const double dtau=0.24;
+=======
+	const double tol = 1E-6;
+	const double dtau0 = 0.24;
+>>>>>>> fast_converge
 
+	double dtau = dtau0;
+	//double dtau_ = dtau;
 	double diff;
+<<<<<<< HEAD
 	int qq = 0;
 	do {
 		qq++;
+=======
+	//cerr << "CSICALC\n";
+	double diff_ = 1e3;
+	int q = 0;
+	//int qq = 0;
+	int cap = 64;
+	do {
+		//qq++;
+>>>>>>> fast_converge
 		// TODO
 		//diff = 0;
-		for(int i=1;i<Lx-1;i++){
-			for(int j=1;j<Ly-1;j++){
+		for (int i=1;i<Lx-1;i++) {
+			for (int j=1;j<Ly-1;j++) {
 				csin[i][j]=csi[i][j]+dtau*(csi[bx(i+1)][j]+csi[bx(i-1)][j]+csi[i][by(j-1)]+csi[i][by(j+1)]-4*csi[i][j]-Force[i][j]);
 				diff+=fabs(csin[i][j]-csi[i][j]);
 			}
 		}
-		for(int i=0;i<Lx;i++){
-			for(int j=0;j<Ly;j++){
-				csi[i][j]=csin[i][j];
-			}
-		}
 		diff/=(Lx*Ly);
 		//cerr << "  " << diff << "\n";
+		diff*=dtau0/dtau;
+
+		if (diff-diff_ <= 0) {
+			for (int i=0;i<Lx;i++) {
+				for (int j=0;j<Ly;j++) {
+					csi[i][j]=csin[i][j];
+				}
+			}
+			if (q < cap) {
+				//dtau_ = dtau;
+				dtau *= 2;
+				q++;
+			}
+		} else {
+			cap = q;
+			q = 0;
+			dtau = dtau0;
+		}
+		
+		//cerr << "  " << diff << " " << diff-diff_ << " " << dtau << "\n";
+		diff_ = diff;
 	} while(diff>tol);
+<<<<<<< HEAD
 	cerr << ">C " << qq << "\n";
+=======
+	//cerr << ">C " << qq << "\n";
+>>>>>>> fast_converge
 	//if (qq > 16) {
 	//	int foo;
 	//	cin >> foo;
