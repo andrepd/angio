@@ -17,13 +17,16 @@
 
 using namespace std;
 
-// Struct para um vector bidimensional; declarar com vect2<tipo>
+// Struct para um vector bidimensional; declarar com vec2<tipo>
 // Usar para vectores (matemáticos) em vez de usar vectors (do C++)
 // Mais rápido e com sintaxe melhor (v.x,v.y em vez de v[0],v[1])
 template <class T>
-struct vect2 {
+struct vec2 {
 	T x,y;
 };
+
+// Atalho para vector 2d de doubles: vec2d
+typedef vec2<double> vec2d;
 
 // Usar como atalho para x*x, equivalente
 template <typename T> inline T sq(T x) {
@@ -42,7 +45,7 @@ const int    nmax = 4;  // Numero de tip cells maximo
 
 //vector<vector<double>> fontes={/*{120,60},{120,70},{120,80},{120,90}*/};//fontes de VEGF
 
-vector<vect2<double>> tips;  // Lista das tip cell
+vector<vec2<double>> tips;  // Lista das tip cell
 
 double vmax,Pmax;
 double a[Lx][Ly],w[Lx][Ly],csi[Lx][Ly],v[Lx][Ly],a_med;
@@ -64,17 +67,17 @@ int main() {
 	void step();
 	void out(double x, double y);
 	void outint(int ff);
-	void csicalc(const vector<vect2<double>>& tips, double raio, int index);
+	void csicalc(const vector<vec2<double>>& tips, double raio, int index);
 	void newtip();
 
 	double find(double inic, double cy);
-	double medp(vect2<double>);
+	double medp(vec2<double>);
 
 	int neigh(int i,int j);
 
-	vect2<double> findxy(vect2<double> pos, vect2<double> gradxy);
-	vect2<double> gradxy(vect2<double> V); 
-	//vect2<double> grad {0,0};
+	vec2<double> findxy(vec2<double> pos, vec2<double> gradxy);
+	vec2<double> gradxy(vec2<double> V); 
+	//vec2<double> grad {0,0};
 
 	int count_chunks();
 
@@ -186,25 +189,25 @@ int count_chunks() {
 			if (V[i][j] || a[i][j] < 0)
 				continue;
 			r++;
-			stack<vect2<int>> s;
-			s.push(vect2<int> {i,j});
+			stack<vec2<int>> s;
+			s.push(vec2<int> {i,j});
 			while (!s.empty()) {
 				auto top = s.top();
 				s.pop();
 				if (!V[top.x+1][top.y] && a[top.x+1][top.y] > 0) {
-					s.push(vect2<int> {top.x+1,top.y});
+					s.push(vec2<int> {top.x+1,top.y});
 					V[top.x+1][top.y] = 1;
 				}
 				if (!V[top.x-1][top.y] && a[top.x-1][top.y] > 0) {
-					s.push(vect2<int> {top.x-1,top.y});
+					s.push(vec2<int> {top.x-1,top.y});
 					V[top.x-1][top.y] = 1;
 				}
 				if (!V[top.x][top.y+1] && a[top.x][top.y+1] > 0) {
-					s.push(vect2<int> {top.x,top.y+1});
+					s.push(vec2<int> {top.x,top.y+1});
 					V[top.x][top.y+1] = 1;
 				}
 				if (!V[top.x][top.y-1] && a[top.x][top.y-1] > 0) {
-					s.push(vect2<int> {top.x,top.y-1});
+					s.push(vec2<int> {top.x,top.y-1});
 					V[top.x][top.y-1] = 1;
 				}
 			}
@@ -213,7 +216,7 @@ int count_chunks() {
 	return r;
 }
 
-double medp(vect2<double> V) {
+double medp(vec2<double> V) {
 	double sum = 0;
 	double sumw = 0;
 
@@ -293,9 +296,9 @@ void newtip() {
 	double phimed;
 	//vector<vector<double>> interface ((Lx-2)*(Ly-2), vector<double>(2,0.));
 	//vector<double> vegf ((Lx-2)*(Ly-2), 0.), pick, point;
-	vector<vect2<int>> interface ((Lx-2)*(Ly-2), {0,0});
+	vector<vec2<int>> interface ((Lx-2)*(Ly-2), {0,0});
 	vector<double> vegf ((Lx-2)*(Ly-2), 0.);
-   	vect2<int> pick, point;
+   	vec2<int> pick, point;
 
 	//cout << "NEWTIP";
 
@@ -331,7 +334,7 @@ void newtip() {
 		}
 	}
 	//interface.clear();
-	const vect2<double> ret {double(pick.x),double(pick.y)};
+	const vec2<double> ret {double(pick.x),double(pick.y)};
 	tips.push_back(ret);
 }
 
@@ -377,6 +380,7 @@ void outint (int ff) {
 	tout.close();
 }
 
+/*
 void out(double x, double y){
 	int i,j;
 	char s[20];
@@ -405,6 +409,7 @@ void out(double x, double y){
 	wout.close();
 	vout.close();
 }
+*/
 
 
 void ini() {
@@ -519,12 +524,6 @@ void poisson() {
 	double dtau = dtau0;
 	//double dtau_ = dtau;
 	double diff;
-<<<<<<< HEAD
-	//double diff_;
-	int qq = 0;
-	do {
-		qq++;
-=======
 	//cerr << "POISSON\n";
 	double diff_ = 1e3;
 	int q = 0;
@@ -532,7 +531,6 @@ void poisson() {
 	int cap = 64;
 	do {
 		//qq++;
->>>>>>> fast_converge
 		double sum=0;
 		for (int i=0;i<Lx;i++) {
 			for (int j=0;j<Ly;j++) {
@@ -576,22 +574,15 @@ void poisson() {
 		//cerr << "  " << diff << " " << diff-diff_ << " " << dtau << "\n";
 		diff_ = diff;
 	} while(diff>tol);
-<<<<<<< HEAD
-	cerr << ">P " << qq << "\n";
-	//if (qq > 16) {
-		//int foo;
-		//cin >> foo;
-=======
 	//cerr << ">P " << qq << "\n";
 	//if (qq > 16) {
 	//	int foo;
 	//	cin >> foo;
->>>>>>> fast_converge
 	//}
 }
 
-vect2<double> gradxy(vect2<double> V) {
-	vect2<double> grad {0,0};
+vec2<double> gradxy(vec2<double> V) {
+	vec2<double> grad {0,0};
 
 	const int cx = lround(V.x);
 	const int cy = lround(V.y);
@@ -602,7 +593,7 @@ vect2<double> gradxy(vect2<double> V) {
 	return grad;
 }
 
-void csicalc(const vector<vect2<double>>& tips, double raio, int index) {
+void csicalc(const vector<vec2<double>>& tips, double raio, int index) {
 	double sum;
 	double Force[Lx][Ly];
 	//double Force_[Lx][Ly];
@@ -610,7 +601,7 @@ void csicalc(const vector<vect2<double>>& tips, double raio, int index) {
 	ofstream csiout;
 	char s[20];
 	//double cx=0,cy=0,cynew,cxnew;
-	//vect2<double> vgrad {0,0};
+	//vec2<double> vgrad {0,0};
 	//double dir=0;
 
 	for (int i=0;i<Lx;i++) {
@@ -619,7 +610,7 @@ void csicalc(const vector<vect2<double>>& tips, double raio, int index) {
 			//Force_[i][j] = 0.;
 			for (int k=0;k<tips.size();k++) {	
 
-				const vect2<double> vgrad = gradxy(tips[k]);
+				const vec2<double> vgrad = gradxy(tips[k]);
 				//dir=atan(vgrad.y/vgrad.x);
 				const double cos_ = vgrad.x/(sqrt(vgrad.x*vgrad.x+vgrad.y*vgrad.y));
 				const double sin_ = vgrad.y/(sqrt(vgrad.x*vgrad.x+vgrad.y*vgrad.y));
@@ -643,22 +634,12 @@ void csicalc(const vector<vect2<double>>& tips, double raio, int index) {
 		}
 	}
 
-<<<<<<< HEAD
-	const double tol=1E-6;
-	const double dtau=0.24;
-=======
 	const double tol = 1E-6;
 	const double dtau0 = 0.24;
->>>>>>> fast_converge
 
 	double dtau = dtau0;
 	//double dtau_ = dtau;
 	double diff;
-<<<<<<< HEAD
-	int qq = 0;
-	do {
-		qq++;
-=======
 	//cerr << "CSICALC\n";
 	double diff_ = 1e3;
 	int q = 0;
@@ -666,8 +647,6 @@ void csicalc(const vector<vect2<double>>& tips, double raio, int index) {
 	int cap = 64;
 	do {
 		//qq++;
->>>>>>> fast_converge
-		// TODO
 		//diff = 0;
 		for (int i=1;i<Lx-1;i++) {
 			for (int j=1;j<Ly-1;j++) {
@@ -699,11 +678,7 @@ void csicalc(const vector<vect2<double>>& tips, double raio, int index) {
 		//cerr << "  " << diff << " " << diff-diff_ << " " << dtau << "\n";
 		diff_ = diff;
 	} while(diff>tol);
-<<<<<<< HEAD
-	cerr << ">C " << qq << "\n";
-=======
 	//cerr << ">C " << qq << "\n";
->>>>>>> fast_converge
 	//if (qq > 16) {
 	//	int foo;
 	//	cin >> foo;
@@ -722,7 +697,7 @@ void csicalc(const vector<vect2<double>>& tips, double raio, int index) {
 	//cerr << "DONE\n";
 }
 
-vect2<double> findxy(vect2<double> pos, vect2<double> gradxy) {
+vec2<double> findxy(vec2<double> pos, vec2<double> gradxy) {
 	const double modulo=sqrt(gradxy.x*gradxy.x+gradxy.y*gradxy.y);
 
 	gradxy.x/=modulo;
@@ -732,7 +707,7 @@ vect2<double> findxy(vect2<double> pos, vect2<double> gradxy) {
 	pos.y-=2*gradxy.y;
 
 	double delta=2.;
-	vect2<double> posn={0,0};
+	vec2<double> posn={0,0};
 
 	while (delta>0.001) {
 		posn.x=pos.x+delta*gradxy.x;
