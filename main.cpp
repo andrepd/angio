@@ -519,16 +519,11 @@ void poisson() {
 	//double f(double z);
 	double wn[Lx][Ly];
 	const double tol = 1E-4;
-	const double dtau0 = 0.24;
+	const double dtau = 0.24;
 
-	double dtau = dtau0;
-	//double dtau_ = dtau;
 	double diff;
-	//cerr << "POISSON\n";
-	double diff_ = 1e3;
-	int q = 0;
+	//double diff_;
 	//int qq = 0;
-	int cap = 64;
 	do {
 		//qq++;
 		double sum=0;
@@ -539,40 +534,19 @@ void poisson() {
 			}
 		}
 		sum/=(Lx*Ly);
-		//sum*=dtau_/dtau;
 		//diff_ = diff;
 		diff = 0;
 		for (int i=0;i<Lx;i++) {
 			for (int j=0;j<Ly;j++) {
 				wn[i][j]=wn[i][j]-sum;
 				diff+=fabs(wn[i][j]-w[i][j]);
+				w[i][j]=wn[i][j];
 			}
 		}
 		diff/=(Lx*Ly);
-		//cerr << "  " << diff << "\n";
-		diff*=dtau0/dtau;
-
-		if (diff-diff_ <= 0) {
-			for (int i=0;i<Lx;i++) {
-				for (int j=0;j<Ly;j++) {
-					w[i][j]=wn[i][j];
-				}
-			}
-			if (q < cap) {
-				//dtau_ = dtau;
-				dtau *= 2;
-				q++;
-			} 
-		} else {
-			cap = q;
-			q = 0;
-			dtau = dtau0;
-		}
-
 		//int foo;
 		//if (fabs(diff-diff_) > 1) cin >> foo; 
-		//cerr << "  " << diff << " " << diff-diff_ << " " << dtau << "\n";
-		diff_ = diff;
+		//cerr << "    " << diff << "\n";
 	} while(diff>tol);
 	//cerr << ">P " << qq << "\n";
 	//if (qq > 16) {
@@ -635,48 +609,28 @@ void csicalc(const vector<vec2<double>>& tips, double raio, int index) {
 	}
 
 	const double tol = 1E-6;
-	const double dtau0 = 0.24;
+	const double dtau = 0.24;
 
-	double dtau = dtau0;
-	//double dtau_ = dtau;
 	double diff;
 	//cerr << "CSICALC\n";
-	double diff_ = 1e3;
-	int q = 0;
+	//double diff_ = 1e3;
 	//int qq = 0;
-	int cap = 64;
 	do {
 		//qq++;
 		//diff = 0;
-		for (int i=1;i<Lx-1;i++) {
-			for (int j=1;j<Ly-1;j++) {
+		for(int i=1;i<Lx-1;i++){
+			for(int j=1;j<Ly-1;j++){
 				csin[i][j]=csi[i][j]+dtau*(csi[bx(i+1)][j]+csi[bx(i-1)][j]+csi[i][by(j-1)]+csi[i][by(j+1)]-4*csi[i][j]-Force[i][j]);
 				diff+=fabs(csin[i][j]-csi[i][j]);
 			}
 		}
+		for(int i=0;i<Lx;i++){
+			for(int j=0;j<Ly;j++){
+				csi[i][j]=csin[i][j];
+			}
+		}
 		diff/=(Lx*Ly);
 		//cerr << "  " << diff << "\n";
-		diff*=dtau0/dtau;
-
-		if (diff-diff_ <= 0) {
-			for (int i=0;i<Lx;i++) {
-				for (int j=0;j<Ly;j++) {
-					csi[i][j]=csin[i][j];
-				}
-			}
-			if (q < cap) {
-				//dtau_ = dtau;
-				dtau *= 2;
-				q++;
-			}
-		} else {
-			cap = q;
-			q = 0;
-			dtau = dtau0;
-		}
-		
-		//cerr << "  " << diff << " " << diff-diff_ << " " << dtau << "\n";
-		diff_ = diff;
 	} while(diff>tol);
 	//cerr << ">C " << qq << "\n";
 	//if (qq > 16) {
