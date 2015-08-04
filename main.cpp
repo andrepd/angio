@@ -533,15 +533,15 @@ void poisson() {
 	const double tol = 1E-4;
 	const double dtau0 = 0.24;
 
-	double diff;
+	double diff=1;
 	//double diff_;
-	cerr << "POISSON\n";
+	//cerr << "POISSON\n";
 	int qq = 0;
 	do {
 		//double dtau = dtau0;
-		for (int i=0; i<srj.size(); i++) {
+		for (int i=0; i<srj.size() && diff>tol; i++) {
 			const double dtau = srj[i]/4;
-			cerr << "   " << dtau << ":";
+			//cerr << "   " << dtau << ":";
 
 			qq++;
 			double sum=0;
@@ -564,14 +564,14 @@ void poisson() {
 			diff/=(Lx*Ly);
 			//int foo;
 			//if (fabs(diff-diff_) > 1) cin >> foo; 
-			cerr << diff << "\n";
+			//cerr << diff << "\n";
 		}
-		cerr << "  " << diff << "\n";
+		//cerr << "  " << diff << "\n";
 	} while(diff>tol);
-	cerr << ">P " << qq << "\n";
+	//cerr << ">P " << qq << "\n";
 	//if (qq > 16) {
-		int foo;
-		cin >> foo;
+		//int foo;
+		//cin >> foo;
 	//}
 }
 
@@ -632,14 +632,14 @@ void csicalc(const vector<vec2<double>>& tips, double raio, int index) {
 	const double dtau0 = 0.24;
 
 	double diff;
-	cerr << "CSICALC\n";
+	//cerr << "CSICALC\n";
 	//double diff_ = 1e3;
 	int qq = 0;
 	do {
 		//double dtau = dtau0;
 		for (int i=0; i<srj.size(); i++) {
 			const double dtau = srj[i]/4;
-			cerr << "   " << dtau << ":";
+			//cerr << "   " << dtau << ":";
 
 			qq++;
 			//diff = 0;
@@ -655,14 +655,17 @@ void csicalc(const vector<vec2<double>>& tips, double raio, int index) {
 				}
 			}
 			diff/=(Lx*Ly);
-			cerr << diff << "\n";
+			//cerr << diff << "\n";
+			if (diff<tol)
+				goto exit;
 		}
-		cerr << "  " << diff << "\n";
+		//cerr << "  " << diff << "\n";
 	} while(diff>tol);
-	cerr << ">C " << qq << "\n";
+	exit:
+	//cerr << ">C " << qq << "\n";
 	//if (qq > 16) {
-		int foo;
-		cin >> foo;
+		//int foo;
+		//cin >> foo;
 	//}
 
 	sprintf(s,"cout.%d",index);

@@ -41,9 +41,9 @@ vector<double> schedule(const scheme<P>& s) {
 		M += s.q[i];
 	vector<double> r (M,0);
 	for (int i=0; i<P; i++) {
-		double pos = i;
+		double pos = i+8;
 		for (int j=0; j<s.q[i]; j++) {
-			cerr << i << " " << j << " " << (int)pos << "\n";
+			//cerr << i << " " << j << " " << (int)pos << "\n";
 			while (r[(int)pos%M] != 0)
 				pos += 1.;
 			r[(int)pos%M] = s.O[i];
