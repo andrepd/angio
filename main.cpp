@@ -529,15 +529,15 @@ void poisson() {
 	double diff;
 	//double diff_;
 	cerr << "POISSON\n";
-	//int qq = 0;
+	int qq = 0;
 	do {
-		double dtau = dtau0;
+		//double dtau = dtau0;
 		for (int i=0; i<2; i++) {
 			for (int j=0; j<srj.q[i]; j++) {
-				dtau = srj.O[i];
+				const double dtau = srj.O[i]/4;
 				cerr << "   " << dtau << ":";
 
-				//qq++;
+				qq++;
 				double sum=0;
 				for (int i=0;i<Lx;i++) {
 					for (int j=0;j<Ly;j++) {
@@ -558,12 +558,12 @@ void poisson() {
 				diff/=(Lx*Ly);
 				//int foo;
 				//if (fabs(diff-diff_) > 1) cin >> foo; 
-				//cerr << diff << "\n";
+				cerr << diff << "\n";
 			}
 		}
 		cerr << "  " << diff << "\n";
 	} while(diff>tol);
-	//cerr << ">P " << qq << "\n";
+	cerr << ">P " << qq << "\n";
 	//if (qq > 16) {
 		int foo;
 		cin >> foo;
@@ -629,15 +629,15 @@ void csicalc(const vector<vec2<double>>& tips, double raio, int index) {
 	double diff;
 	cerr << "CSICALC\n";
 	//double diff_ = 1e3;
-	//int qq = 0;
+	int qq = 0;
 	do {
-		double dtau = dtau0;
+		//double dtau = dtau0;
 		for (int i=0; i<2; i++) {
 			for (int j=0; j<srj.q[i]; j++) {
-				dtau = srj.O[i];
+				const double dtau = srj.O[i]/4;
 				cerr << "   " << dtau << ":";
 
-				//qq++;
+				qq++;
 				//diff = 0;
 				for(int i=1;i<Lx-1;i++){
 					for(int j=1;j<Ly-1;j++){
@@ -654,9 +654,9 @@ void csicalc(const vector<vec2<double>>& tips, double raio, int index) {
 				cerr << diff << "\n";
 			}
 		}
-		//cerr << "  " << diff << "\n";
+		cerr << "  " << diff << "\n";
 	} while(diff>tol);
-	//cerr << ">C " << qq << "\n";
+	cerr << ">C " << qq << "\n";
 	//if (qq > 16) {
 		int foo;
 		cin >> foo;
