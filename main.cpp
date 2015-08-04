@@ -43,7 +43,7 @@ const int    rad = 5;  // Raio das celulas
 const double vbase = 0.01;
 const double valoralfa = 0.065;
 const int    nmax = 4;  // Numero de tip cells maximo
-scheme<2> srj;
+vector<double> srj;
 
 //vector<vector<double>> fontes={/*{120,60},{120,70},{120,80},{120,90}*/};//fontes de VEGF
 
@@ -119,7 +119,14 @@ int main() {
 	const int iNf=1, tf=100000;
 	int nchunks = 1;
 	
-	srj = get_scheme(Lx);
+	srj = schedule(get_scheme<5>(Lx));
+
+	/*
+	for (auto i: srj)
+		cerr << i << " ";
+	cerr << "\n";
+	*/
+
 	//cerr << srj.N;
 
 	for (int iN=0;iN<iNf;iN++) {
@@ -532,34 +539,32 @@ void poisson() {
 	int qq = 0;
 	do {
 		//double dtau = dtau0;
-		for (int i=0; i<2; i++) {
-			for (int j=0; j<srj.q[i]; j++) {
-				const double dtau = srj.O[i]/4;
-				cerr << "   " << dtau << ":";
+		for (int i=0; i<srj.size(); i++) {
+			const double dtau = srj[i]/4;
+			cerr << "   " << dtau << ":";
 
-				qq++;
-				double sum=0;
-				for (int i=0;i<Lx;i++) {
-					for (int j=0;j<Ly;j++) {
-						wn[i][j]=w[i][j]+dtau*(w[bx(i+1)][j]+w[bx(i-1)][j]+w[i][by(j-1)]+w[i][by(j+1)]-4*w[i][j]-(f(a[i][j])+csi[i][j]));
-						sum+=wn[i][j];
-					}
+			qq++;
+			double sum=0;
+			for (int i=0;i<Lx;i++) {
+				for (int j=0;j<Ly;j++) {
+					wn[i][j]=w[i][j]+dtau*(w[bx(i+1)][j]+w[bx(i-1)][j]+w[i][by(j-1)]+w[i][by(j+1)]-4*w[i][j]-(f(a[i][j])+csi[i][j]));
+					sum+=wn[i][j];
 				}
-				sum/=(Lx*Ly);
-				//diff_ = diff;
-				diff = 0;
-				for (int i=0;i<Lx;i++) {
-					for (int j=0;j<Ly;j++) {
-						wn[i][j]=wn[i][j]-sum;
-						diff+=fabs(wn[i][j]-w[i][j]);
-						w[i][j]=wn[i][j];
-					}
-				}
-				diff/=(Lx*Ly);
-				//int foo;
-				//if (fabs(diff-diff_) > 1) cin >> foo; 
-				cerr << diff << "\n";
 			}
+			sum/=(Lx*Ly);
+			//diff_ = diff;
+			diff = 0;
+			for (int i=0;i<Lx;i++) {
+				for (int j=0;j<Ly;j++) {
+					wn[i][j]=wn[i][j]-sum;
+					diff+=fabs(wn[i][j]-w[i][j]);
+					w[i][j]=wn[i][j];
+				}
+			}
+			diff/=(Lx*Ly);
+			//int foo;
+			//if (fabs(diff-diff_) > 1) cin >> foo; 
+			cerr << diff << "\n";
 		}
 		cerr << "  " << diff << "\n";
 	} while(diff>tol);
@@ -632,27 +637,25 @@ void csicalc(const vector<vec2<double>>& tips, double raio, int index) {
 	int qq = 0;
 	do {
 		//double dtau = dtau0;
-		for (int i=0; i<2; i++) {
-			for (int j=0; j<srj.q[i]; j++) {
-				const double dtau = srj.O[i]/4;
-				cerr << "   " << dtau << ":";
+		for (int i=0; i<srj.size(); i++) {
+			const double dtau = srj[i]/4;
+			cerr << "   " << dtau << ":";
 
-				qq++;
-				//diff = 0;
-				for(int i=1;i<Lx-1;i++){
-					for(int j=1;j<Ly-1;j++){
-						csin[i][j]=csi[i][j]+dtau*(csi[bx(i+1)][j]+csi[bx(i-1)][j]+csi[i][by(j-1)]+csi[i][by(j+1)]-4*csi[i][j]-Force[i][j]);
-						diff+=fabs(csin[i][j]-csi[i][j]);
-					}
+			qq++;
+			//diff = 0;
+			for(int i=1;i<Lx-1;i++){
+				for(int j=1;j<Ly-1;j++){
+					csin[i][j]=csi[i][j]+dtau*(csi[bx(i+1)][j]+csi[bx(i-1)][j]+csi[i][by(j-1)]+csi[i][by(j+1)]-4*csi[i][j]-Force[i][j]);
+					diff+=fabs(csin[i][j]-csi[i][j]);
 				}
-				for(int i=0;i<Lx;i++){
-					for(int j=0;j<Ly;j++){
-						csi[i][j]=csin[i][j];
-					}
-				}
-				diff/=(Lx*Ly);
-				cerr << diff << "\n";
 			}
+			for(int i=0;i<Lx;i++){
+				for(int j=0;j<Ly;j++){
+					csi[i][j]=csin[i][j];
+				}
+			}
+			diff/=(Lx*Ly);
+			cerr << diff << "\n";
 		}
 		cerr << "  " << diff << "\n";
 	} while(diff>tol);
