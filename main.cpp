@@ -52,10 +52,13 @@ vector<vec2<double>> tips;  // Lista das tip cell
 double vmax,Pmax;
 double a[Lx][Ly],w[Lx][Ly],csi[Lx][Ly],v[Lx][Ly],a_med;
 
-int bx(int xx) {
+double p_res[Lx][Ly];
+int p_n[Lx][Ly];
+
+inline int bx(int xx) {
 	return (xx+Lx)%Lx;
 }
-int by(int yy) {
+inline int by(int yy) {
 	return (yy+Ly)%Ly;
 }
 
@@ -358,6 +361,7 @@ void outint (int ff) {
 	ofstream csiout;
 	ofstream tout;
 	double prolif(int i, int j);
+	void prolifupdate();
 
 	sprintf(s,"data/wout_%d",ff);
 	wout.open(s);
@@ -455,6 +459,7 @@ void ch() {
 	double Q[Lx][Ly],mu[Lx][Ly],an[Lx][Ly],vn[Lx][Ly],aloc;
 	double I1[Lx][Ly],I2[Lx][Ly],I3[Lx][Ly],IE[Lx][Ly];
 	double prolif(int i, int j);
+	void prolifupdate();
 	double consumo(int i, int j);
 
 	//double maiorv,maiora,maiorw;
@@ -490,6 +495,7 @@ void ch() {
 	}
 
 	a_med=0;
+	prolifupdate();
 	for(int i=0;i<Lx;i++){
 		for(int j=0;j<Ly;j++){
 			an[i][j]=a[i][j]+dt*(mu[bx(i+1)][j]+mu[bx(i-1)][j]+mu[i][by(j-1)]+mu[i][by(j+1)]-4*mu[i][j]+ (t*dt>10?prolif(i,j):0) );
@@ -536,14 +542,14 @@ void poisson() {
 	double diff=1;
 	//double diff_;
 	//cerr << "POISSON\n";
-	int qq = 0;
+	//int qq = 0;
 	do {
 		//double dtau = dtau0;
 		for (int i=0; i<srj.size() && diff>tol; i++) {
 			const double dtau = srj[i]/4;
 			//cerr << "   " << dtau << ":";
 
-			qq++;
+			//qq++;
 			double sum=0;
 			for (int i=0;i<Lx;i++) {
 				for (int j=0;j<Ly;j++) {
@@ -634,14 +640,14 @@ void csicalc(const vector<vec2<double>>& tips, double raio, int index) {
 	double diff;
 	//cerr << "CSICALC\n";
 	//double diff_ = 1e3;
-	int qq = 0;
+	//int qq = 0;
 	do {
 		//double dtau = dtau0;
 		for (int i=0; i<srj.size(); i++) {
 			const double dtau = srj[i]/4;
 			//cerr << "   " << dtau << ":";
 
-			qq++;
+			//qq++;
 			//diff = 0;
 			for(int i=1;i<Lx-1;i++){
 				for(int j=1;j<Ly-1;j++){
@@ -725,6 +731,7 @@ double find(double inic, double cy){
 }
 */
 
+/*
 double prolif(int i, int j){
 	if (a[i][j]<=0.5) 
 		return 0;
@@ -745,6 +752,40 @@ double prolif(int i, int j){
 			}
 		}
 		return n>0 ? res/n : 0;
+	}
+}
+*/
+
+double prolif(int i, int j) {
+	if (a[i][j]<=0.5) 
+		return 0;
+	double res=0;
+	int n=0;
+	for (int x=i-rad;x<=i+rad;x++) {
+		for (int y=j-rad;y<=j+rad;y++) {
+			if (sq(x-i)+sq(y-j) <= sq(rad)) {
+				res += p_res[bx(x)][by(y)];
+				n += p_n[bx(x)][by(y)];
+			}
+		}
+	}
+	return n>0 ? res/n : 0;
+}
+
+void prolifupdate() {
+	for (int i=0; i<Lx; i++) {
+		for (int j=0; j<Ly; j++) {
+			const double ra = v[i][j];
+			const double aloc = a[i][j];
+			const double rc = csi[i][j]-valoralfa*aloc;
+			if (aloc>0.5 && rc>-valoralfa+0.05) {
+				p_res[i][j] = ra>vmax ? Pmax : ra*Pmax/vmax;
+				p_n[i][j] = 1;
+			} else {
+				p_res[i][j] = 0;
+				p_n[i][j] = 0;
+			}
+		}
 	}
 }
 
