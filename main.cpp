@@ -1,3 +1,11 @@
+// Struct para um vector bidimensional; declarar com vec2<tipo>
+// Usar para vectores (matemáticos) em vez de usar vectors (do C++)
+// Mais rápido e com sintaxe melhor (v.x,v.y em vez de v[0],v[1])
+template <class T>
+struct vec2 {
+	T x,y;
+};
+
 #include <fstream>
 //#include <math.h>
 #include <cmath>
@@ -17,14 +25,6 @@
 #define teste 1
 
 using namespace std;
-
-// Struct para um vector bidimensional; declarar com vec2<tipo>
-// Usar para vectores (matemáticos) em vez de usar vectors (do C++)
-// Mais rápido e com sintaxe melhor (v.x,v.y em vez de v[0],v[1])
-template <class T>
-struct vec2 {
-	T x,y;
-};
 
 // Atalho para vector 2d de doubles: vec2d
 typedef vec2<double> vec2d;
@@ -88,7 +88,7 @@ int main() {
 
 	ofstream resultados("res");
 
-	tips.push_back({Lx/5+10,Ly/2.});
+	//tips.push_back({Lx/5+10,Ly/2.});
 
 #if (teste == 0)
 	vmenor=0.20;vmaior=1.0;
@@ -122,7 +122,7 @@ int main() {
 	const int iNf=1, tf=100000;
 	int nchunks = 1;
 	
-	srj = schedule(get_scheme<5>(Lx));
+	srj = schedule<5>(get_scheme<5>(Lx));
 
 	/*
 	for (auto i: srj)
@@ -260,6 +260,34 @@ double medp(vec2<double> V) {
 
 	//return average;
 }
+
+/*
+double medp(vec2<double> V) {
+    double sum = 0;
+    double sumw = 0;
+
+    const int x_up = ceil(V.x);
+    const int x_down = floor(V.x);
+
+    const int y_right = ceil(V.y);
+    const int y_left = floor(V.y);
+
+    const double dxup=x_up-V.x;
+    const double dyr=y_right-V.y;
+    const double dxdown=x_down-V.x;
+    const double dyl=y_left-V.y;
+
+    const double dist1=dxup*dxup+dyl*dyl;
+    const double dist2=dxup*dxup+dyr*dyr;
+    const double dist3=dxdown*dxdown+dyl*dyl;
+    const double dist4=dxdown*dxdown+dyr*dyr;
+
+    double average=(a[x_up][y_left]/dist1+a[x_up][y_right]/dist2+a[x_down][y_left]/dist3+a[x_down][y_right]/dist4);
+    sum+=1/dist1+1/dist2+1/dist3+1/dist4;
+
+    return average/sum;
+}
+*/
 
 int maxval(const vector<double>& list) {
 	int res = 0;
@@ -435,11 +463,17 @@ void ini() {
 			a[i][j] = i>Lx/5 && i<Lx/5+10 ? 1 : -1;
 			w[i][j] = 0;
 			csi[i][j] = 0;
-			v[i][j] = ((double)i)/(Lx-1);
+			v[i][j] = ((double)i)/(Lx-1);//1.;
 			a_med += a[i][j];
 		}
 	}
 	a_med /= (Lx*Ly);
+	
+	ifstream tips_in ("tips.in");
+	double x,y;
+	while (tips_in >> x >> y) {
+		tips.push_back({x,y});
+	}
 }
 
 void step() {
