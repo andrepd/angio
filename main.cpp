@@ -11,7 +11,7 @@ struct vec2 {
 #include <cmath>
 //#include <stdlib.h>
 #include <cstdlib> 
-//#include <iomanip>
+#include <iomanip>
 #include <iostream>
 #include <fstream>
 #include <vector>
@@ -34,6 +34,7 @@ template <typename T> inline T sq(T x) {
 	return x*x;
 }
 
+/*
 const int    Lx = 128, Ly = 128;  // Dimensoes da grelha
 const double medini = -0.2, ge = 0.126;
 const double Amp = 10.55;  // Amplitude da forca
@@ -43,6 +44,7 @@ const int    rad = 5;  // Raio das celulas
 const double vbase = 0.01;
 const double valoralfa = 0.065;
 const int    nmax = 4;  // Numero de tip cells maximo
+*/
 vector<double> srj;
 
 //vector<vector<double>> fontes={/*{120,60},{120,70},{120,80},{120,90}*/};//fontes de VEGF
@@ -72,7 +74,7 @@ int main() {
 	void step();
 	void out(double x, double y);
 	void outint(int ff);
-	void csicalc(const vector<vec2<double>>& tips, double raio, int index);
+	void csicalc(double raio, int index);
 	void newtip();
 
 	double find(double inic, double cy);
@@ -119,7 +121,9 @@ int main() {
 	//srand48(time(0));
 	passo = 500;
 	const int passotips = 500;
+	/*
 	const int iNf=1, tf=100000;
+	*/
 	int nchunks = 1;
 	
 	srj = schedule<5>(get_scheme<5>(Lx));
@@ -148,28 +152,32 @@ int main() {
 			//cerr << "\n";
 			//cerr << " OK\n";
 			if ((t+100) % passotips	== 0) {
-				cout << "t=" << t << '\n';
+				//cout << "t=" << t << '\n';
+				//cout << "      " << setw(8) << "x" << setw(8) << "y" << setw(8) << "∇x" << setw(8) << "∇y\n";
+				printf("t=%d\n",t);
+				printf("      x        y        ∇x       ∇y\n");
 				for (int k=0;k<tips.size();k++) {
 					const auto grad = gradxy(tips[k]);
 					tips[k] = findxy(tips[k],grad);
 					//tips[k][0]=find(tips[k][0]-2,tips[k][1]);
 					if (tips[k].x > Lx-1-rad || tips[k].x < rad) {
-						cout << "Tip " << k+1 << " out of bounds.\n";
+						printf("Tip %d out of bounds.\n",k+1);
 						return -1;
 					}
-					cout << "Tip " << k+1 << " " 
-						<< tips[k].x << " " << tips[k].y << " "
-						<< grad.x << " " << grad.y << '\n';
+					//cout << "Tip " << k+1 << " " << setw(8) 
+					//	<< tips[k].x << " " << setw(8) << tips[k].y << " "<< setw(8) 
+					//	<< grad.x << " " << setw(8) << grad.y << '\n';
+					printf("Tip %d %-8.4lf %-8.4lf %-8.4lf %-8.4lf\n",k+1,tips[k].x,tips[k].y,grad.x,grad.y);
 				}
 				cout<<'\n';
 
 				//cout << count_chunks() << "\n";
 				if (count_chunks() > nchunks) {
-					cout << "Vasos partidos!\n\n";
+					printf("Vasos partidos!\n\n");
 					nchunks++;
 				}
 
-				csicalc(tips, double(rad), 0);
+				csicalc(double(rad), 0);
 				if (fabs(a_med)>20) 
 					break;
 			}
@@ -498,6 +506,7 @@ void ch() {
 
 	//double maiorv,maiora,maiorw;
 
+#pragma omp parallel for
 	for (int i=0;i<Lx;i++) {
 		for (int j=0;j<Ly;j++) {
 			aloc=a[i][j];
@@ -514,6 +523,7 @@ void ch() {
 	}
 
 #if (alfa != 0)
+#pragma omp parallel for
 	for (int i=0;i<Lx;i++) {
 		for (int j=0;j<Ly;j++) {
 			IE[i][j]=(I1[bx(i+1)][j]+I1[bx(i-1)][j]-2*I1[i][j])+(I2[i][by(j+1)]+I2[i][by(j-1)]-2*I2[i][j])+2*(I3[bx(i+1)][by(j+1)]-I3[bx(i-1)][by(j+1)]+I3[bx(i-1)][by(j-1)]-I3[bx(i+1)][by(j-1)])/4.0;
@@ -521,8 +531,9 @@ void ch() {
 	}
 #endif
 
-	for(int i=0;i<Lx;i++){
-		for(int j=0;j<Ly;j++){
+#pragma omp parallel for
+	for (int i=0;i<Lx;i++) {
+		for (int j=0;j<Ly;j++) {
 			aloc=a[i][j];
 			mu[i][j]=-aloc+aloc*aloc*aloc-(a[bx(i+1)][j]+a[bx(i-1)][j]+a[i][by(j-1)]+a[i][by(j+1)]-4*aloc)-ge*Q[i][j]+valoralfa*csi[i][j];
 		}
@@ -530,8 +541,9 @@ void ch() {
 
 	a_med=0;
 	prolifupdate();
-	for(int i=0;i<Lx;i++){
-		for(int j=0;j<Ly;j++){
+#pragma omp parallel for
+	for (int i=0;i<Lx;i++) {
+		for (int j=0;j<Ly;j++) {
 			an[i][j]=a[i][j]+dt*(mu[bx(i+1)][j]+mu[bx(i-1)][j]+mu[i][by(j-1)]+mu[i][by(j+1)]-4*mu[i][j]+ (t*dt>10?prolif(i,j):0) );
 #if (alfa !=0)
 			an[i][j]=an[i][j]+2*ge*IE[i][j]*valoralfa*dt;
@@ -542,19 +554,20 @@ void ch() {
 	a_med/=(Lx*Ly);
 
 
-	for(int i=1;i<Lx-1;i++){
-		for(int j=0;j<Ly;j++){
+#pragma omp parallel for
+	for (int i=1;i<Lx-1;i++) {
+		for (int j=0;j<Ly;j++) {
 			vn[i][j]=v[i][j]+D*dt*(v[i+1][j]+v[i-1][j]+v[i][by(j+1)]+v[i][by(j-1)]-4*v[i][j]-consumo(i,j));
 		}
 	}
 
-	for(int j=0;j<Ly;j++){
+	for (int j=0;j<Ly;j++) {
 		vn[0][j]=0;
 		vn[Lx-1][j]=1;
 	}
 
-	for(int i=0;i<Lx;i++){
-		for(int j=0;j<Ly;j++){
+	for (int i=0;i<Lx;i++) {
+		for (int j=0;j<Ly;j++) {
 			a[i][j]=an[i][j];
 			v[i][j]=vn[i][j];
 		}
@@ -627,7 +640,7 @@ vec2<double> gradxy(vec2<double> V) {
 	return grad;
 }
 
-void csicalc(const vector<vec2<double>>& tips, double raio, int index) {
+void csicalc(double raio, int index) {
 	double sum;
 	double Force[Lx][Ly];
 	//double Force_[Lx][Ly];
