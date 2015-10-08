@@ -44,7 +44,6 @@ print box([
 
 print 'Reading input file...\n'
 
-#defines = []
 tips = []
 with open(argv[1], 'r') as f:
     f = [x for x in f if x[0] != '#' and x != '\n' and x != 'TIPS\n']
