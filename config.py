@@ -1,6 +1,6 @@
-from os import system
+import os
 from sys import argv, exit
-from time import clock,time
+from time import clock, time
 
 defaults = {
         'Lx': '128',
@@ -51,10 +51,20 @@ def build(defines, tips):
         for i in tips:
             f.write(i)
 
-    print 'Compiling...',
-    system('ulimit -s '+str(int(defines['Lx'])*int(defines['Ly'])*128/1024))
-    system('g++ -pg main.cpp -std=c++11 -march=native -O3 -o main '+' '.join(['-D'+i+'='+j for i,j in defines.items()]))
-    print 'Done.'
+    print 'Constants:'
+    for i in defines:
+        print i,'=',defines[i]
+    print
+
+    print 'Tips:'
+    for i in tips:
+        print i
+    print
+
+    print 'Compiling...'
+    os.system('ulimit -s '+str(int(defines['Lx'])*int(defines['Ly'])*128/1024))
+    os.system('g++ -pg main.cpp -std=c++11 -march=native -O3 -o main '+' '.join(['-D'+i+'='+j for i,j in defines.items()]))
+    print 'Done.\n'
 
 def run():
     if not os.path.exists('data'):
@@ -62,7 +72,7 @@ def run():
     print 'Running:\n'
     print '-----\n'
     ti = time()
-    system('./main')
+    os.system('./main')
     tf = time()
     print '\n-----\n'
     print 'Running time:',round(tf-ti,2),'seconds.'

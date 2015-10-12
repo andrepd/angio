@@ -42,6 +42,9 @@ const int    nmax = 4;  // Numero de tip cells maximo
 const double rho0,L0,M,vconc;
 */
 
+int p_j=0, dp_n;
+double dp_res;
+
 vector<double> srj;
 vector<vec2<double>> tips;
 
@@ -52,10 +55,12 @@ double p_res[Lx][Ly];
 int p_n[Lx][Ly];
 
 // Condições de fronteira periódicas para x e y
-inline int bx(int xx)
+inline int bx(int xx) {
     return (xx+Lx)%Lx;
-inline int by(int yy)
+}
+inline int by(int yy) {
     return (yy+Ly)%Ly;
+}
 
 int t;
 
@@ -378,8 +383,9 @@ void step()
     ch();
 }
 
-inline double f(double z)
+inline double f(double z) {
     return -valoralfa*z;
+}
 
 void ch()
 {
@@ -596,6 +602,14 @@ double prolif(int i, int j)
 	double res=0;
 
 	int n=0;
+	if (j == p_j+1) {
+		n = dp_n - p_n[bx(i)][by(p_j-rad)] + p_n[bx(i)][by(j+rad)];
+		res = dp_res - p_res[bx(i)][by(p_j-rad)] + p_res[bx(i)][by(j+rad)];
+		dp_n = n;
+		dp_res = res;
+		p_j = j;
+		return n>0 ? res/n : 0;
+	}
 	for (int x=i-rad;x<=i+rad;x++) {
 		for (int y=j-rad;y<=j+rad;y++) {
 			if (sq(x-i)+sq(y-j) <= sq(rad)) {
@@ -604,6 +618,9 @@ double prolif(int i, int j)
 			}
 		}
 	}
+	dp_n = n;
+	dp_res = res;
+	p_j = j;
 	return n>0 ? res/n : 0;
 }
 
