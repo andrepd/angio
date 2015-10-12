@@ -3,26 +3,21 @@
 // Mais rápido e com sintaxe melhor (v.x,v.y em vez de v[0],v[1])
 template <class T>
 struct vec2 {
-	T x,y;
+    T x,y;
 };
 
 #include <fstream>
-//#include <math.h>
 #include <cmath>
-//#include <stdlib.h>
 #include <cstdlib> 
 #include <iomanip>
 #include <iostream>
 #include <fstream>
 #include <vector>
-//#include <omp.h>
 #include <random>
-//#include <chrono>
 #include <stack>
 #include "srj.hpp"
 
 #define alfa 1
-#define teste 1
 
 using namespace std;
 
@@ -31,7 +26,7 @@ typedef vec2<double> vec2d;
 
 // Usar como atalho para x*x, equivalente
 template <typename T> inline T sq(T x) {
-	return x*x;
+    return x*x;
 }
 
 /*
@@ -44,134 +39,84 @@ const int    rad = 5;  // Raio das celulas
 const double vbase = 0.01;
 const double valoralfa = 0.065;
 const int    nmax = 4;  // Numero de tip cells maximo
+const double rho0,L0,M,vconc;
 */
+
 vector<double> srj;
+vector<vec2<double>> tips;
 
-//vector<vector<double>> fontes={/*{120,60},{120,70},{120,80},{120,90}*/};//fontes de VEGF
-
-vector<vec2<double>> tips;  // Lista das tip cell
-
-double vmax,Pmax;
+//double vmax,Pmax;
 double a[Lx][Ly],w[Lx][Ly],csi[Lx][Ly],v[Lx][Ly],a_med;
 
 double p_res[Lx][Ly];
 int p_n[Lx][Ly];
 
-inline int bx(int xx) {
-	return (xx+Lx)%Lx;
-}
-inline int by(int yy) {
-	return (yy+Ly)%Ly;
-}
+// Condições de fronteira periódicas para x e y
+inline int bx(int xx)
+    return (xx+Lx)%Lx;
+inline int by(int yy)
+    return (yy+Ly)%Ly;
 
 int t;
-int main() {
-	double vmenor,vmaior,Pmenor,Pmaior,dv,dP;
-	int passo;
-	double rand;
 
-	void ini();
-	void step();
-	void out(double x, double y);
-	void outint(int ff);
-	void csicalc(double raio, int index);
-	void newtip();
+int main()
+{
+    int passo;
+    double rand;
 
-	double find(double inic, double cy);
-	double medp(vec2<double>);
+    void ini();
+    void step();
+    void out(double x, double y);
+    void outint(int ff);
+    void csicalc(double raio, int index);
+    void newtip();
 
-	int neigh(int i,int j);
+    double find(double inic, double cy);
+    double medp(vec2<double>);
 
-	vec2<double> findxy(vec2<double> pos, vec2<double> gradxy);
-	vec2<double> gradxy(vec2<double> V); 
-	//vec2<double> grad {0,0};
+    int neigh(int i,int j);
 
-	int count_chunks();
+    vec2<double> findxy(vec2<double> pos, vec2<double> gradxy);
+    vec2<double> gradxy(vec2<double> V); 
 
-	ofstream resultados("res");
+    int count_chunks();
 
-	//tips.push_back({Lx/5+10,Ly/2.});
+    ofstream resultados("res");
 
-#if (teste == 0)
-	vmenor=0.20;vmaior=1.0;
-	Pmenor=0.002;Pmaior=0.01;
-	dv=0.1;dP=0.001;
-	passo=5000;
-#endif
+    random_device seed;
+    mt19937_64 rand_gen(seed());
+    uniform_real_distribution<double> dist01(0.0,1.0);
 
-#if(teste == 1)
-	vmenor=0.1;vmaior=0.1;
-	Pmenor=0.02;Pmaior=0.02;
-	dv=0.1;dP=0.01;
-	passo=1000;
-#endif
+    passo = 500;
+    const int passotips = 500;
+    int nchunks = 1;
 
-#if (teste == 2)
-	vmenor=0.20;vmaior=1.0;
-	Pmenor=0.002;Pmaior=0.01;
-	dv=(vmaior-vmenor);
-	dP=(Pmaior-Pmenor);
-	passo=5000;
-#endif
-
-	random_device seed;
-	mt19937_64 rand_gen(seed());
-	uniform_real_distribution<double> dist01(0.0,1.0);
-
-	//srand48(time(0));
-	passo = 500;
-	const int passotips = 500;
-	/*
-	const int iNf=1, tf=100000;
-	*/
-	int nchunks = 1;
-	
-	srj = schedule<5>(get_scheme<5>(Lx));
-
-	/*
-	for (auto i: srj)
-		cerr << i << " ";
-	cerr << "\n";
-	*/
-
-	//cerr << srj.N;
+    srj = schedule<5>(get_scheme<5>(Lx));
 
 	for (int iN=0;iN<iNf;iN++) {
-		vmax=0.3;
-		Pmax=0.03;
+		//vmax=0.3;
+		//Pmax=0.03;
 
 		ini();
 
 		for (t=0;t<tf;t++) {
-			//cerr << "t=" << t;
 			step();
-			//cerr << "  ";
-			//for (auto i: tips) {
-			//	cerr << i.x << "," << i.y << " ";
-			//}
-			//cerr << "\n";
-			//cerr << " OK\n";
 			if ((t+100) % passotips	== 0) {
-				//cout << "t=" << t << '\n';
-				//cout << "      " << setw(8) << "x" << setw(8) << "y" << setw(8) << "∇x" << setw(8) << "∇y\n";
-				printf("t=%d\n",t);
-				printf("      x        y        ∇x       ∇y\n");
+				printf("		t = %d\n",t);
+				printf("         x        y       ∇x       ∇y\n");
+				printf("*****************************************\n");
 				for (int k=0;k<tips.size();k++) {
 					const auto grad = gradxy(tips[k]);
 					tips[k] = findxy(tips[k],grad);
-					//tips[k][0]=find(tips[k][0]-2,tips[k][1]);
 					if (tips[k].x > Lx-1-rad || tips[k].x < rad) {
 						printf("Tip %d out of bounds.\n",k+1);
 						return -1;
 					}
-					//cout << "Tip " << k+1 << " " << setw(8) 
-					//	<< tips[k].x << " " << setw(8) << tips[k].y << " "<< setw(8) 
-					//	<< grad.x << " " << setw(8) << grad.y << '\n';
 					printf("Tip %d %-8.4lf %-8.4lf %-8.4lf %-8.4lf\n",k+1,tips[k].x,tips[k].y,grad.x,grad.y);
 				}
+				printf("*****************************************\n");
 				cout<<'\n';
 
-				//cout << count_chunks() << "\n";
 				if (count_chunks() > nchunks) {
 					printf("Vasos partidos!\n\n");
 					nchunks++;
@@ -185,21 +130,21 @@ int main() {
 				//rand=drand48();
 				//rand = dist01(rand_gen);
 				//if(rand>0.5) 
-					newtip();
+				newtip();
 			}
 			if ((t+1) % passo == 0)
 				cout << "(Novo output)\n\n";
-#if(teste==1)
 			if ((t+2) % passo == 0)
 				outint(t+2);
-#endif
 		}
 		resultados << Pmax << "\t" << vmax << "\t" << a_med << "\t" << t*dt << "\n";
 		cout       << Pmax << "\t" << vmax << "\t" << a_med << "\t" << t*dt << "\n";
 	}
 }
 
-int count_chunks() {
+// Retorna o número de vasos distintos
+int count_chunks()
+{
 	bool V[Lx][Ly];
 	for (int i=0; i<Lx; i++) {
 		for (int j=0; j<Ly; j++) {
@@ -239,41 +184,9 @@ int count_chunks() {
 	return r;
 }
 
-double medp(vec2<double> V) {
-	double sum = 0;
-	double sumw = 0;
-
-	const int cx = lround(V.x);
-	const int cy = lround(V.y);
-
-	//for (int i=xc-1;i<(xc+rad+1);i++) {
-	//	for (int j=yc-1;j<(yc+rad+1);j++) {
-	for (int i=cx-rad;i<=cx+rad;i++) {
-		for (int j=cy-rad;j<=cy+rad;j++) {
-			const double dist = sqrt((V.x-i)*(V.x-i)+(V.y-j)*(V.y-j));
-			if (dist<rad) {
-				sum += a[i][j]/sqrt(dist);
-				sumw += 1/sqrt(dist);
-			}
-		}
-	}
-	return sum/sumw;
-
-	//double average=a[x_up][y_left]+(x-x_up)*(a[x_down][y_left]-a[x_up][y_left])+(y-y_left)*(a[x_up][y_right]-a[x_up][y_left]);
-
-	//double average=(a[xc+1][yc]+a[xc-1][yc]+a[xc][yc+1]+a[xc][yc-1]
-	//	+0.5*a[xc+1][yc+1]+0.5*a[xc-1][yc-1]+0.5*a[xc+1][yc-1]+0.5*a[xc-1][yc+1])/6.;
-
-	// double average=(a[xc+1][yc]+a[xc-1][yc]+a[xc][yc+1]+a[xc][yc-1])/4.;
-
-	//return average;
-}
-
-/*
-double medp(vec2<double> V) {
-    double sum = 0;
-    double sumw = 0;
-
+// Retorna a média pesada
+double medp(vec2<double> V)
+{
     const int x_up = ceil(V.x);
     const int x_down = floor(V.x);
 
@@ -290,14 +203,16 @@ double medp(vec2<double> V) {
     const double dist3=dxdown*dxdown+dyl*dyl;
     const double dist4=dxdown*dxdown+dyr*dyr;
 
-    double average=(a[x_up][y_left]/dist1+a[x_up][y_right]/dist2+a[x_down][y_left]/dist3+a[x_down][y_right]/dist4);
-    sum+=1/dist1+1/dist2+1/dist3+1/dist4;
+    const double average = (a[x_up][y_left]/dist1+a[x_up][y_right]/dist2+a[x_down][y_left]/dist3+a[x_down][y_right]/dist4);
+    const double sum = 1/dist1+1/dist2+1/dist3+1/dist4;
 
     return average/sum;
 }
-*/
 
-int maxval(const vector<double>& list) {
+
+// Retorna o índice do elemento com valor máximo num vector
+int maxval(const vector<double>& list)
+{
 	int res = 0;
 	double maxval = 0;
 
@@ -308,11 +223,11 @@ int maxval(const vector<double>& list) {
 		}
 	}
 
-	return res;
+    return res;
 }
 
-// TODO
-bool neigh(int i, int j) {
+bool neigh(int i, int j)
+{
 	int res = 0;
 
 	if (i==0) {
@@ -337,21 +252,19 @@ bool neigh(int i, int j) {
 	}
 
 	if (res==0 || res==4)
-	   	return 0;
+		return 0;
 	else 
 		return 1;
 }
 
-void newtip() {
+// Calcula a posição da nova tip e adiciona ao vector das tips
+void newtip()
+{
 	int maxval(const vector<double>& list);
 	double phimed;
-	//vector<vector<double>> interface ((Lx-2)*(Ly-2), vector<double>(2,0.));
-	//vector<double> vegf ((Lx-2)*(Ly-2), 0.), pick, point;
 	vector<vec2<int>> interface ((Lx-2)*(Ly-2), {0,0});
 	vector<double> vegf ((Lx-2)*(Ly-2), 0.);
-   	vec2<int> pick, point;
-
-	//cout << "NEWTIP";
+	vec2<int> pick, point;
 
 	int pos = 0;
 	for (int i=1;i<Lx-1;i++) {
@@ -364,7 +277,6 @@ void newtip() {
 		}
 	}
 
-	// TODO
 	int senti = 1;
 
 	while (senti!=0) {
@@ -377,24 +289,25 @@ void newtip() {
 			const double dist3 = sqrt((pick.x-tips[i].x+Lx)*(pick.x-tips[i].x+Lx)+(pick.y-tips[i].y)*(pick.y-tips[i].y));    
 
 			if (dist1<(4.*rad) || dist2<(4.*rad) || dist3<(4.*rad)) {
-				vegf[maxvegf]=-1000;  // TODO
+				vegf[maxvegf]=-1000;
 				break;
 			}
 			if (i==tips.size()-1)
 				senti = 0;
 		}
 	}
-	//interface.clear();
 	const vec2<double> ret {double(pick.x),double(pick.y)};
 	tips.push_back(ret);
 }
 
-void outint (int ff) {
+// Imprime os outputs para os ficheiros
+void outint (int ff)
+{
 	char s[32];
 	ofstream wout;
 	ofstream aout;
 	ofstream vout;
-	ofstream csiout;
+	//ofstream csiout;
 	ofstream tout;
 	double prolif(int i, int j);
 	void prolifupdate();
@@ -405,8 +318,8 @@ void outint (int ff) {
 	aout.open(s);
 	sprintf(s,"data/vout_%d",ff);
 	vout.open(s);
-	sprintf(s,"data/csiout_%d",ff);
-	csiout.open(s);
+	//sprintf(s,"data/csiout_%d",ff);
+	//csiout.open(s);
 	sprintf(s,"data/tout_%d",ff);
 	tout.open(s);
 
@@ -415,68 +328,39 @@ void outint (int ff) {
 			wout<<w[i][j]<<" ";
 			aout<<a[i][j]<<" ";
 			vout<<v[i][j]<<" ";
-			csiout<<csi[i][j]<<" ";
+			//csiout<<csi[i][j]<<" ";
 		}
 		wout<<"\n";
 		aout<<"\n";
 		vout<<"\n";
-		csiout<<"\n";
+		//csiout<<"\n";
 	}
 	for (int i=0; i<tips.size(); i++) {
 		tout << tips[i].x << " " << tips[i].y << "\n";
 	}
+
 	aout.close();
 	wout.close();
 	vout.close();
-	csiout.close();
+	//csiout.close();
 	tout.close();
 }
 
-/*
-void out(double x, double y){
-	int i,j;
-	char s[20];
-	ofstream wout;
-	ofstream aout;
-	ofstream vout;
-
-	sprintf(s,"wout_%6.4f_%5.3f",x,y);
-	wout.open(s);
-	sprintf(s,"aout_%6.4f_%5.3f",x,y);
-	aout.open(s);
-	sprintf(s,"vout_%6.4f_%5.3f",x,y);
-	vout.open(s);
-
-	for (i=0;i<Lx;i++){
-		for(j=0;j<Ly;j++){
-			wout<<w[i][j]<<" ";
-			aout<<a[i][j]<<" ";
-			vout<<v[i][j]<<" ";
-		}
-		wout<<"\n";
-		aout<<"\n";
-		vout<<"\n";
-	}
-	aout.close();
-	wout.close();
-	vout.close();
-}
-*/
-
-
-void ini() {
+// Inicializa os arrays e as tips
+void ini()
+{
 	a_med=0;
 	for (int i=0;i<Lx;i++){
 		for (int j=0;j<Ly;j++){
-			a[i][j] = i>Lx/5 && i<Lx/5+10 ? 1 : -1;
+			a[i][j] = i>10 && i<60 ? 1 : -1;
 			w[i][j] = 0;
 			csi[i][j] = 0;
-			v[i][j] = ((double)i)/(Lx-1);//1.;
+			i>60?(v[i][j] = vconc):(v[i][j]==0);
 			a_med += a[i][j];
 		}
 	}
 	a_med /= (Lx*Ly);
-	
+
 	ifstream tips_in ("tips.in");
 	double x,y;
 	while (tips_in >> x >> y) {
@@ -484,29 +368,27 @@ void ini() {
 	}
 }
 
-void step() {
-	void poisson();
-	void ch();
+// Efectua um passo
+void step()
+{
+    void poisson();
+    void ch();
 
-	poisson();
-	ch();
+    poisson();
+    ch();
 }
 
-inline double f(double z){
-	return -valoralfa*z;
-}
+inline double f(double z)
+    return -valoralfa*z;
 
-void ch() {
-	//double f(double z);
+void ch()
+{
 	double Q[Lx][Ly],mu[Lx][Ly],an[Lx][Ly],vn[Lx][Ly],aloc;
 	double I1[Lx][Ly],I2[Lx][Ly],I3[Lx][Ly],IE[Lx][Ly];
 	double prolif(int i, int j);
 	void prolifupdate();
 	double consumo(int i, int j);
 
-	//double maiorv,maiora,maiorw;
-
-#pragma omp parallel for
 	for (int i=0;i<Lx;i++) {
 		for (int j=0;j<Ly;j++) {
 			aloc=a[i][j];
@@ -523,7 +405,6 @@ void ch() {
 	}
 
 #if (alfa != 0)
-#pragma omp parallel for
 	for (int i=0;i<Lx;i++) {
 		for (int j=0;j<Ly;j++) {
 			IE[i][j]=(I1[bx(i+1)][j]+I1[bx(i-1)][j]-2*I1[i][j])+(I2[i][by(j+1)]+I2[i][by(j-1)]-2*I2[i][j])+2*(I3[bx(i+1)][by(j+1)]-I3[bx(i-1)][by(j+1)]+I3[bx(i-1)][by(j-1)]-I3[bx(i+1)][by(j-1)])/4.0;
@@ -531,22 +412,20 @@ void ch() {
 	}
 #endif
 
-#pragma omp parallel for
-	for (int i=0;i<Lx;i++) {
-		for (int j=0;j<Ly;j++) {
+	for(int i=0;i<Lx;i++) {
+		for(int j=0;j<Ly;j++) {
 			aloc=a[i][j];
-			mu[i][j]=-aloc+aloc*aloc*aloc-(a[bx(i+1)][j]+a[bx(i-1)][j]+a[i][by(j-1)]+a[i][by(j+1)]-4*aloc)-ge*Q[i][j]+valoralfa*csi[i][j];
+			mu[i][j]=rho0*(-aloc+aloc*aloc*aloc-(a[bx(i+1)][j]+a[bx(i-1)][j]+a[i][by(j-1)]+a[i][by(j+1)]-4*aloc))-ge*Q[i][j]+valoralfa*csi[i][j]/L0;
 		}
 	}
 
 	a_med=0;
 	prolifupdate();
-#pragma omp parallel for
-	for (int i=0;i<Lx;i++) {
-		for (int j=0;j<Ly;j++) {
-			an[i][j]=a[i][j]+dt*(mu[bx(i+1)][j]+mu[bx(i-1)][j]+mu[i][by(j-1)]+mu[i][by(j+1)]-4*mu[i][j]+ (t*dt>10?prolif(i,j):0) );
+	for(int i=0;i<Lx;i++) {
+		for(int j=0;j<Ly;j++) {
+			an[i][j]=a[i][j]+dt*(M1*(mu[bx(i+1)][j]+mu[bx(i-1)][j]+mu[i][by(j-1)]+mu[i][by(j+1)]-4*mu[i][j])+(t*dt>10?prolif(i,j):0) );
 #if (alfa !=0)
-			an[i][j]=an[i][j]+2*ge*IE[i][j]*valoralfa*dt;
+			an[i][j]=an[i][j]+2*ge*IE[i][j]*valoralfa*dt/L0;
 #endif
 			a_med+=an[i][j];
 		}
@@ -554,58 +433,44 @@ void ch() {
 	a_med/=(Lx*Ly);
 
 
-#pragma omp parallel for
-	for (int i=1;i<Lx-1;i++) {
-		for (int j=0;j<Ly;j++) {
+	for(int i=1;i<Lx-1;i++) {
+		for(int j=0;j<Ly;j++) {
 			vn[i][j]=v[i][j]+D*dt*(v[i+1][j]+v[i-1][j]+v[i][by(j+1)]+v[i][by(j-1)]-4*v[i][j]-consumo(i,j));
 		}
 	}
 
-	for (int j=0;j<Ly;j++) {
-		vn[0][j]=0;
-		vn[Lx-1][j]=1;
+	for(int j=0;j<Ly;j++){
+		vn[0][j]=vn[1][j];
+		vn[Lx-1][j]=vn[Lx-2][j];
 	}
 
-	for (int i=0;i<Lx;i++) {
-		for (int j=0;j<Ly;j++) {
+	for(int i=0;i<Lx;i++){
+		for(int j=0;j<Ly;j++){
 			a[i][j]=an[i][j];
 			v[i][j]=vn[i][j];
 		}
 	}
 
-	/*for(int i=0;i<fontes.size();i++) {
-	  double fontex=fontes[i][0];
-	  double fontey=fontes[i][1];
-	  v[(int)fontex][(int)fontey]=1.;
-	  }*/
 }
 
-void poisson() {
-	//double f(double z);
+void poisson()
+{
 	double wn[Lx][Ly];
 	const double tol = 1E-4;
 	const double dtau0 = 0.24;
 
 	double diff=1;
-	//double diff_;
-	//cerr << "POISSON\n";
-	//int qq = 0;
 	do {
-		//double dtau = dtau0;
 		for (int i=0; i<srj.size() && diff>tol; i++) {
 			const double dtau = srj[i]/4;
-			//cerr << "   " << dtau << ":";
-
-			//qq++;
 			double sum=0;
 			for (int i=0;i<Lx;i++) {
 				for (int j=0;j<Ly;j++) {
-					wn[i][j]=w[i][j]+dtau*(w[bx(i+1)][j]+w[bx(i-1)][j]+w[i][by(j-1)]+w[i][by(j+1)]-4*w[i][j]-(f(a[i][j])+csi[i][j]));
+					wn[i][j]=w[i][j]+dtau*(w[bx(i+1)][j]+w[bx(i-1)][j]+w[i][by(j-1)]+w[i][by(j+1)]-4*w[i][j]-(f(a[i][j])+csi[i][j])/L0);
 					sum+=wn[i][j];
 				}
 			}
 			sum/=(Lx*Ly);
-			//diff_ = diff;
 			diff = 0;
 			for (int i=0;i<Lx;i++) {
 				for (int j=0;j<Ly;j++) {
@@ -615,67 +480,44 @@ void poisson() {
 				}
 			}
 			diff/=(Lx*Ly);
-			//int foo;
-			//if (fabs(diff-diff_) > 1) cin >> foo; 
-			//cerr << diff << "\n";
 		}
-		//cerr << "  " << diff << "\n";
 	} while(diff>tol);
-	//cerr << ">P " << qq << "\n";
-	//if (qq > 16) {
-		//int foo;
-		//cin >> foo;
-	//}
 }
 
-vec2<double> gradxy(vec2<double> V) {
-	vec2<double> grad {0,0};
+vec2<double> gradxy(vec2<double> V)
+{
+    vec2<double> grad {0,0};
 
-	const int cx = lround(V.x);
-	const int cy = lround(V.y);
+    const int cx = lround(V.x);
+    const int cy = lround(V.y);
 
-	grad.x = (v[cx+1][cy]-v[cx-1][cy])/2.;
-	grad.y = (v[cx][cy+1]-v[cx][cy-1])/2.;
+    grad.x = (v[cx+1][cy]-v[cx-1][cy])/2.;
+    grad.y = (v[cx][cy+1]-v[cx][cy-1])/2.;
 
-	return grad;
+    return grad;
 }
 
-void csicalc(double raio, int index) {
+void csicalc(double raio, int index)
+{
 	double sum;
 	double Force[Lx][Ly];
-	//double Force_[Lx][Ly];
 	double csin[Lx][Ly];
 	ofstream csiout;
 	char s[20];
-	//double cx=0,cy=0,cynew,cxnew;
-	//vec2<double> vgrad {0,0};
-	//double dir=0;
 
 	for (int i=0;i<Lx;i++) {
 		for (int j=0;j<Ly;j++){
 			Force[i][j] = 0.;
-			//Force_[i][j] = 0.;
 			for (int k=0;k<tips.size();k++) {	
 
 				const vec2<double> vgrad = gradxy(tips[k]);
-				//dir=atan(vgrad.y/vgrad.x);
 				const double cos_ = vgrad.x/(sqrt(vgrad.x*vgrad.x+vgrad.y*vgrad.y));
 				const double sin_ = vgrad.y/(sqrt(vgrad.x*vgrad.x+vgrad.y*vgrad.y));
-
-				//if ( (vgrad.x>0 && vgrad.y<0) || (vgrad.x<0 && vgrad.y<0) ) 
-				//	dir+=M_PI;
 
 				const double cx=i-tips[k].x;
 				const double cy=j-tips[k].y;
 
-				//cxnew=cx*cos(dir)-cy*sin(dir);
-				//cynew=cx*sin(dir)+cy*cos(dir);
-
-				//Force_[i][j]+=-Amp*exp(-cynew*cynew/raio/raio)*exp(-cxnew*cxnew/raio/raio)*(4*cxnew*cxnew-2*raio*raio)/raio/raio/raio/raio;	
-				//Force[i][j] += -Amp/raio/raio*exp(-(cx*cx+cy*cy)/raio/raio)*((2+4*cx*cx/raio/raio)*cos(dir)+4*cx*cy/raio/raio*sin(dir));
-				//Force[i][j] += -Amp/raio/raio*exp(-(cx*cx+cy*cy)/raio/raio)*((2+4*cx*cx/raio/raio)*cos_+4*cx*cy/raio/raio*sin_);
 				Force[i][j] += 2*Amp/raio/raio*exp(-(cx*cx+cy*cy)/raio/raio)*((1-2*cx*cx/raio/raio)*cos_+2*cx*cy/raio/raio*sin_);
-				//cerr << i << " " << j << " " << Force[i][j] << " " << Force_[i][j] << "\n";
 			}
 			csi[i][j]=csin[i][j]=0;
 		}
@@ -685,17 +527,10 @@ void csicalc(double raio, int index) {
 	const double dtau0 = 0.24;
 
 	double diff;
-	//cerr << "CSICALC\n";
-	//double diff_ = 1e3;
-	//int qq = 0;
 	do {
-		//double dtau = dtau0;
 		for (int i=0; i<srj.size(); i++) {
 			const double dtau = srj[i]/4;
-			//cerr << "   " << dtau << ":";
 
-			//qq++;
-			//diff = 0;
 			for(int i=1;i<Lx-1;i++){
 				for(int j=1;j<Ly-1;j++){
 					csin[i][j]=csi[i][j]+dtau*(csi[bx(i+1)][j]+csi[bx(i-1)][j]+csi[i][by(j-1)]+csi[i][by(j+1)]-4*csi[i][j]-Force[i][j]);
@@ -708,18 +543,11 @@ void csicalc(double raio, int index) {
 				}
 			}
 			diff/=(Lx*Ly);
-			//cerr << diff << "\n";
 			if (diff<tol)
 				goto exit;
 		}
-		//cerr << "  " << diff << "\n";
 	} while(diff>tol);
-	exit:
-	//cerr << ">C " << qq << "\n";
-	//if (qq > 16) {
-		//int foo;
-		//cin >> foo;
-	//}
+exit:
 
 	sprintf(s,"cout.%d",index);
 	csiout.open(s);
@@ -731,10 +559,10 @@ void csicalc(double raio, int index) {
 		csiout << "\n";
 	}
 	csiout.close();
-	//cerr << "DONE\n";
 }
 
-vec2<double> findxy(vec2<double> pos, vec2<double> gradxy) {
+vec2<double> findxy(vec2<double> pos, vec2<double> gradxy)
+{
 	const double modulo=sqrt(gradxy.x*gradxy.x+gradxy.y*gradxy.y);
 
 	gradxy.x/=modulo;
@@ -759,54 +587,14 @@ vec2<double> findxy(vec2<double> pos, vec2<double> gradxy) {
 	return pos;
 }
 
-// TODO
-/*
-double find(double inic, double cy){
-	int res1,res2,med;
-
-	res1=(int)inic;
-	res2=(int)Lx;
-	while(abs(res1-res2)>2){
-		med=(int)(res1+res2)/2.0+1;
-		if(a[res1][(int)cy]*a[med][(int)cy]<0)res2=med;
-		else res1=med;
+double prolif(int i, int j)
+{
+	if (a[i][j]<=0.5) {
+		return 0;
 	}
 
-	const double resultado=res1-(res2-res1)*a[res1][(int)cy]/(a[res2][(int)cy]-a[res1][(int)cy]);
-
-	return resultado;
-}
-*/
-
-/*
-double prolif(int i, int j){
-	if (a[i][j]<=0.5) 
-		return 0;
-	else {
-		double res=0;
-		int n=0;
-		for (int x=i-rad;x<=i+rad;x++) {
-			for (int y=j-rad;y<=j+rad;y++) {
-				if (sq(x-i)+sq(y-j) <= sq(rad)) {
-					const double ra = v[bx(x)][by(y)];
-					const double aloc = a[bx(x)][by(y)];
-					const double rc = csi[bx(x)][by(y)]-valoralfa*aloc;
-					if (aloc>0.5 && rc>-valoralfa+0.05) {
-						res += ra>vmax ? Pmax : ra*Pmax/vmax;
-						n++;
-					}
-				}
-			}
-		}
-		return n>0 ? res/n : 0;
-	}
-}
-*/
-
-double prolif(int i, int j) {
-	if (a[i][j]<=0.5) 
-		return 0;
 	double res=0;
+
 	int n=0;
 	for (int x=i-rad;x<=i+rad;x++) {
 		for (int y=j-rad;y<=j+rad;y++) {
@@ -819,16 +607,20 @@ double prolif(int i, int j) {
 	return n>0 ? res/n : 0;
 }
 
-void prolifupdate() {
+void prolifupdate()
+{
 	for (int i=0; i<Lx; i++) {
 		for (int j=0; j<Ly; j++) {
+
 			const double ra = v[i][j];
 			const double aloc = a[i][j];
 			const double rc = csi[i][j]-valoralfa*aloc;
+
 			if (aloc>0.5 && rc>-valoralfa+0.05) {
 				p_res[i][j] = ra>vmax ? Pmax : ra*Pmax/vmax;
 				p_n[i][j] = 1;
-			} else {
+			}
+			else {
 				p_res[i][j] = 0;
 				p_n[i][j] = 0;
 			}
@@ -836,6 +628,7 @@ void prolifupdate() {
 	}
 }
 
-double consumo(int i, int j) {
+double consumo(int i, int j)
+{
 	return (a[i][j]>0 ? (a[i][j]<1 ? 0.1*a[i][j] : 0.1) : 0)*v[i][j];
 }

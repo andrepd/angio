@@ -16,6 +16,12 @@ defaults = {
         'nmax': '4',
         'iNf': '1',
         'tf': '100000',
+        'vmax':'0.15',
+	'Pmax':'0.03',
+	'L0':'1',
+	'M1':'1',
+	'rho0':'1',
+	'vconc':'1'
 }
 
 def box(s,c='*',n=None):
