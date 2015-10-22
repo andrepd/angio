@@ -120,7 +120,7 @@ int main()
 					printf("Tip %d %-8.4lf %-8.4lf %-8.4lf %-8.4lf\n",k+1,tips[k].x,tips[k].y,grad.x,grad.y);
 				}
 				printf("*****************************************\n");
-				cout<<'\n';
+				printf('\n');
 
 				if (count_chunks() > nchunks) {
 					printf("Vasos partidos!\n\n");
@@ -138,7 +138,7 @@ int main()
 				newtip();
 			}
 			if ((t+1) % passo == 0)
-				cout << "(Novo output)\n\n";
+				printf("(Novo output)\n\n");
 			if ((t+2) % passo == 0)
 				outint(t+2);
 		}
@@ -593,6 +593,7 @@ vec2<double> findxy(vec2<double> pos, vec2<double> gradxy)
 	return pos;
 }
 
+// Calculo da proliferação com DP
 double prolif(int i, int j)
 {
 	if (a[i][j]<=0.5) {
@@ -602,19 +603,50 @@ double prolif(int i, int j)
 	double res=0;
 
 	int n=0;
-	if (j == p_j+1) {
+	
+	int xr = 0;
+	int yr = rad;
+	for (int x=0; x<
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+	if (j == p_j+1) {  // DP
+		for (int y=j-rad; y<=j+rad; y++) {
+			for (int x=i-rad;x<=i+rad;x++) {
+				if (sq(x-i) + sq(y-j) <= sq(rad)) {
+					res += p_res[bx(x)][by(y)];
+					n += p_n[bx(x)][by(y)];
+				}
+			}
+		}
+
+
+
+
+
 		n = dp_n - p_n[bx(i)][by(p_j-rad)] + p_n[bx(i)][by(j+rad)];
 		res = dp_res - p_res[bx(i)][by(p_j-rad)] + p_res[bx(i)][by(j+rad)];
-		dp_n = n;
-		dp_res = res;
-		p_j = j;
-		return n>0 ? res/n : 0;
 	}
-	for (int x=i-rad;x<=i+rad;x++) {
-		for (int y=j-rad;y<=j+rad;y++) {
-			if (sq(x-i)+sq(y-j) <= sq(rad)) {
-				res += p_res[bx(x)][by(y)];
-				n += p_n[bx(x)][by(y)];
+	else {
+		for (int x=i-rad;x<=i+rad;x++) {
+			//for (int y=j-sqrt(sq(x-i)-sq(rad);y<=j+sqrt(sq(x-i)-sq(rad));y++) {
+			for (int y=j-rad; y<=j+rad; y++) {
+				if (sq(x-i) + sq(y-j) <= sq(rad)) {
+					res += p_res[bx(x)][by(y)];
+					n += p_n[bx(x)][by(y)];
+				}
 			}
 		}
 	}
