@@ -42,17 +42,36 @@ const int    nmax = 4;  // Numero de tip cells maximo
 const double rho0,L0,M,vconc;
 */
 
-int p_j=0, dp_n;
+int dp_i=-1, dp_n;
 double dp_res;
 
 vector<double> srj;
 vector<vec2<double>> tips;
 
 //double vmax,Pmax;
-double a[Lx][Ly],w[Lx][Ly],csi[Lx][Ly],v[Lx][Ly],a_med;
+vector<vector<double>> a(Lx,vector<double>(Ly));
+vector<vector<double>> w(Lx,vector<double>(Ly));
+vector<vector<double>> csi(Lx,vector<double>(Ly));
+vector<vector<double>> v(Lx,vector<double>(Ly));
+	
+double a_med;
 
-double p_res[Lx][Ly];
-int p_n[Lx][Ly];
+vector<vector<double>> p_res(Lx,vector<double>(Ly));
+vector<vector<int>> p_n(Lx,vector<int>(Ly));
+
+// ch()
+vector<vector<double>> Q(Lx,vector<double>(Ly));
+vector<vector<double>> mu(Lx,vector<double>(Ly));
+vector<vector<double>> an(Lx,vector<double>(Ly));
+vector<vector<double>> vn(Lx,vector<double>(Ly));
+vector<vector<double>> I1(Lx,vector<double>(Ly));
+vector<vector<double>> I2(Lx,vector<double>(Ly));
+vector<vector<double>> I3(Lx,vector<double>(Ly));
+vector<vector<double>> IE(Lx,vector<double>(Ly));
+
+// csicalc()
+vector<vector<double>> Force(Lx,vector<double>(Ly));
+vector<vector<double>> csin(Lx,vector<double>(Ly));
 
 // Condições de fronteira periódicas para x e y
 inline int bx(int xx) {
@@ -66,8 +85,8 @@ int t;
 
 int main()
 {
-    int passo;
-    double rand;
+    const int passo = 500;
+    //double rand;
 
     void ini();
     void step();
@@ -92,7 +111,6 @@ int main()
     mt19937_64 rand_gen(seed());
     uniform_real_distribution<double> dist01(0.0,1.0);
 
-    passo = 500;
     const int passotips = 500;
     int nchunks = 1;
 
@@ -120,12 +138,14 @@ int main()
 					printf("Tip %d %-8.4lf %-8.4lf %-8.4lf %-8.4lf\n",k+1,tips[k].x,tips[k].y,grad.x,grad.y);
 				}
 				printf("*****************************************\n");
-				printf('\n');
+				printf("\n");
 
+				/*
 				if (count_chunks() > nchunks) {
 					printf("Vasos partidos!\n\n");
 					nchunks++;
 				}
+				*/
 
 				csicalc(double(rad), 0);
 				if (fabs(a_med)>20) 
@@ -157,8 +177,8 @@ int count_chunks()
 		}
 	}
 	int r = 0;
-	for (int i=0; i<Lx; i++) {
-		for (int j=0; j<Ly; j++) {
+	for (int i=1; i<Lx-1; i++) {
+		for (int j=1; j<Ly-1; j++) {
 			if (V[i][j] || a[i][j] < 0)
 				continue;
 			r++;
@@ -389,15 +409,13 @@ inline double f(double z) {
 
 void ch()
 {
-	double Q[Lx][Ly],mu[Lx][Ly],an[Lx][Ly],vn[Lx][Ly],aloc;
-	double I1[Lx][Ly],I2[Lx][Ly],I3[Lx][Ly],IE[Lx][Ly];
 	double prolif(int i, int j);
 	void prolifupdate();
 	double consumo(int i, int j);
 
 	for (int i=0;i<Lx;i++) {
 		for (int j=0;j<Ly;j++) {
-			aloc=a[i][j];
+			const double aloc=a[i][j];
 			const double txx=w[bx(i+1)][j]+w[bx(i-1)][j]-2*w[i][j];
 			const double tyy=w[i][by(j+1)]+w[i][by(j-1)]-2*w[i][j];
 			const double txy=(w[bx(i+1)][by(j+1)]-w[bx(i-1)][by(j+1)]+w[bx(i-1)][by(j-1)]-w[bx(i+1)][by(j-1)])/4.0;
@@ -420,7 +438,7 @@ void ch()
 
 	for(int i=0;i<Lx;i++) {
 		for(int j=0;j<Ly;j++) {
-			aloc=a[i][j];
+			const double aloc=a[i][j];
 			mu[i][j]=rho0*(-aloc+aloc*aloc*aloc-(a[bx(i+1)][j]+a[bx(i-1)][j]+a[i][by(j-1)]+a[i][by(j+1)]-4*aloc))-ge*Q[i][j]+valoralfa*csi[i][j]/L0;
 		}
 	}
@@ -486,8 +504,11 @@ void poisson()
 				}
 			}
 			diff/=(Lx*Ly);
+			if (diff<tol)
+				goto exit1;
 		}
 	} while(diff>tol);
+exit1:;
 }
 
 vec2<double> gradxy(vec2<double> V)
@@ -506,8 +527,6 @@ vec2<double> gradxy(vec2<double> V)
 void csicalc(double raio, int index)
 {
 	double sum;
-	double Force[Lx][Ly];
-	double csin[Lx][Ly];
 	ofstream csiout;
 	char s[20];
 
@@ -593,7 +612,52 @@ vec2<double> findxy(vec2<double> pos, vec2<double> gradxy)
 	return pos;
 }
 
-// Calculo da proliferação com DP
+double prolif(int i, int j) {
+	if (a[i][j]<=0.5) 
+		return 0;
+
+	if (i != dp_i) {
+		//double res=0;
+		//int n=0;
+		dp_res = 0;
+		dp_n = 0;
+		for (int x=i-rad;x<=i+rad;x++) {
+			for (int y=j-rad;y<=j+rad;y++) {
+				if (sq(x-i)+sq(y-j) <= sq(rad)) {
+					dp_res += p_res[bx(x)][by(y)];
+					dp_n += p_n[bx(x)][by(y)];
+				}
+			}
+		}
+		//cerr << "recomp ";
+		dp_i = i;
+	}
+	else {
+		for (int x=i-rad;x<=i+rad;x++) {
+			for (int y=j-rad;y<=j;y++) {
+				if (sq(x-i)+sq(y-j) <= sq(rad)) {
+					dp_res -= p_res[bx(x)][by(y-1)];
+					dp_n -= p_n[bx(x)][by(y-1)];
+					break;
+				}
+			}
+			for (int y=j+rad;y>=j;y--) {
+				if (sq(x-i)+sq(y-j) <= sq(rad)) {
+					dp_res += p_res[bx(x)][by(y)];
+					dp_n += p_n[bx(x)][by(y)];
+					break;
+				}
+			}
+		}
+	}
+	
+
+
+	return dp_n>0 ? dp_res/dp_n : 0;
+}
+
+/*
+// Calculo da proliferação com DP, ~25% mais rápido
 double prolif(int i, int j)
 {
 	if (a[i][j]<=0.5) {
@@ -654,7 +718,7 @@ double prolif(int i, int j)
 	dp_res = res;
 	p_j = j;
 	return n>0 ? res/n : 0;
-}
+}*/
 
 void prolifupdate()
 {

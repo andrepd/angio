@@ -1,10 +1,10 @@
 set size square
-set xrange [0:127]
-set yrange [0:127]
+set xrange [0:L-1]
+set yrange [0:L-1]
 set cbrange[-1:1]
 unset key
 
-load '/home/andrepd/Development/gnuplot-colorbrewer/diverging/RdYlBu.plt'
+load 'colors.gp'
 
 set palette negative
 do for [i=1000:100000:500] {
