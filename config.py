@@ -27,7 +27,7 @@ defaults = {
 def box(s,c='*',n=None):
     if n == None:
         n = max([len(x) for x in s])+6
-    return c*n+'\n' + '\n'.join([c+x.center(n-2)+c for x in s]) + '\n'+c*n
+    return c*n+'\n' + '\n'.join([c+x.center(n-2)+c for x in s]) + '\n'+c*n+'\n'
 
 def parse(name):
     print 'Reading input file...',
@@ -100,6 +100,6 @@ if __name__ == '__main__':
 
     d,t = parse(argv[1])
     build(d,t)
-    run()
+    #run()
 
 
