@@ -1,3 +1,10 @@
+#define WOUT output "/wout_"
+#define AOUT output "/aout_"
+#define TOUT output "/tout_"
+#define VOUT output "/vout_"
+#define CSIOUT output "/csiout_"
+
+
 // Struct para um vector bidimensional; declarar com vec2<tipo>
 // Usar para vectores (matemáticos) em vez de usar vectors (do C++)
 // Mais rápido e com sintaxe melhor (v.x,v.y em vez de v[0],v[1])
@@ -337,15 +344,15 @@ void outint (int ff)
 	double prolif(int i, int j);
 	void prolifupdate();
 
-	sprintf(s,"data/wout_%d",ff);
+	sprintf(s,WOUT"%d",ff);
 	wout.open(s);
-	sprintf(s,"data/aout_%d",ff);
+	sprintf(s,AOUT"%d",ff);
 	aout.open(s);
-	sprintf(s,"data/vout_%d",ff);
+	sprintf(s,VOUT"%d",ff);
 	vout.open(s);
 	//sprintf(s,"data/csiout_%d",ff);
 	//csiout.open(s);
-	sprintf(s,"data/tout_%d",ff);
+	sprintf(s,TOUT"%d",ff);
 	tout.open(s);
 
 	for (int j=0;j<Ly;j++){
@@ -574,7 +581,7 @@ void csicalc(double raio, int index)
 	} while(diff>tol);
 exit:
 
-	sprintf(s,"cout.%d",index);
+	sprintf(s,CSIOUT"%d",index);
 	csiout.open(s);
 
 	for (int i=0;i<Lx;i++){

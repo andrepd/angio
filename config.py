@@ -21,7 +21,8 @@ defaults = {
 	'L0':'1',
 	'M1':'1',
 	'rho0':'1',
-	'vconc':'1'
+	'vconc':'1',
+	'output':'\'\"data\"\''
 }
 
 def box(s,c='*',n=None):
@@ -51,6 +52,8 @@ def build(defines, tips):
         for i in tips:
             f.write(i)
 
+    d['output'] = '\'\"'+d['output']+'\"\''
+
     print 'Constants:'
     for i in defines:
         print i,'=',defines[i]
@@ -61,14 +64,15 @@ def build(defines, tips):
         print i
     print
 
+    if not os.path.exists(d['output'][2:-2]):
+        os.makedirs(d['output'][2:-2])
+
     print 'Compiling...'
     os.system('ulimit -s '+str(int(defines['Lx'])*int(defines['Ly'])*128/1024))
     os.system('g++ -pg main.cpp -std=c++11 -march=native -O3 -o main '+' '.join(['-D'+i+'='+j for i,j in defines.items()]))
     print 'Done.\n'
 
 def run():
-    if not os.path.exists('data'):
-        os.makedirs('data')
     print 'Running:\n'
     print '-----\n'
     ti = time()
@@ -100,6 +104,7 @@ if __name__ == '__main__':
 
     d,t = parse(argv[1])
     build(d,t)
-    #run()
+    run()
+
 
 
