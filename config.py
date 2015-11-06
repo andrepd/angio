@@ -1,6 +1,14 @@
+#!/usr/bin/python
+# -*- coding: utf-8 -*-
+'''
+Ferramenta para configurar, compilar e correr o programa. 
+  Se o script for corrido, lê as definições do ficheiro, usa-as para compilar o programa, e corre
+  Se o script for importado, define as funções parse, config e run
+'''
 import os
 from sys import argv, exit
 from time import clock, time
+from itertools import product
 
 defaults = {
         'Lx': '128',
@@ -31,6 +39,7 @@ def box(s,c='*',n=None):
     return c*n+'\n' + '\n'.join([c+x.center(n-2)+c for x in s]) + '\n'+c*n+'\n'
 
 def parse(name):
+    '''Lê as definições do ficheiro name e retorna um dicionário com os defines e uma lista com as coordenadas iniciais das tip cells'''
     print 'Reading input file...',
     defines = defaults
     tips = []
@@ -46,6 +55,7 @@ def parse(name):
     return defines,tips
 
 def build(defines, tips):
+    '''Usando os defines em defines e as coordenadas das tips em tips compila o programa'''
     if not tips:
         tips.append(str(int(defines['Lx'])/5+10)+' '+str(int(defines['Ly'])/2))
     with open('tips.in','w') as f:
@@ -73,6 +83,7 @@ def build(defines, tips):
     print 'Done.\n'
 
 def run():
+    '''Corre o programa, contabilizando o tempo'''
     print 'Running:\n'
     print '-----\n'
     ti = time()
@@ -81,6 +92,14 @@ def run():
     print '\n-----\n'
     print 'Running time:',round(tf-ti,2),'seconds.'
     print 'Done.'
+
+def permutations(d,t):
+    '''Devolve uma lista com d,t para todas as combinações de parâmetros no dicionário d e para todas as listas de tips em t'''
+    for i in [dict(zip(d, v)) for v in product(*d.values())]:
+        for j in t:
+            #build(i,j)
+            #run()
+            yield i,j
 
 if __name__ == '__main__':
     if len(argv) != 2:
@@ -105,6 +124,4 @@ if __name__ == '__main__':
     d,t = parse(argv[1])
     build(d,t)
     run()
-
-
 
