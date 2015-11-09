@@ -46,8 +46,11 @@ const int    rad = 5;  // Raio das celulas
 const double vbase = 0.01;
 const double valoralfa = 0.065;
 const int    nmax = 4;  // Numero de tip cells maximo
-const double rho0,L0,M,vconc;
+const double rho0,L0,M,vconc,E,nu;
 */
+
+const double L0=(1/6/(1-2*nu)+1/4/(1+nu))*E;
+
 
 int dp_i=-1, dp_n;
 double dp_res;
