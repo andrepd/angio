@@ -21,7 +21,6 @@ defaults = {
         'vbase': '.01',
         'valoralfa': '.065',
         'nmax': '4',
-        'iNf': '1',
         'tf': '100000',
         'vmax':'0.15',
 	'Pmax':'0.03',

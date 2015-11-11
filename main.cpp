@@ -40,14 +40,12 @@ double dp_res;
 
 vector<double> srj;
 vector<vec2<double>> tips;
-
 vector<vector<double>> a(Lx,vector<double>(Ly));
 vector<vector<double>> w(Lx,vector<double>(Ly));
 vector<vector<double>> csi(Lx,vector<double>(Ly));
 vector<vector<double>> v(Lx,vector<double>(Ly));
-	
-double a_med;
 
+double a_med;
 vector<vector<double>> p_res(Lx,vector<double>(Ly));
 vector<vector<int>> p_n(Lx,vector<int>(Ly));
 
@@ -91,8 +89,6 @@ int main()
     vec2<double> findxy(vec2<double> pos, vec2<double> gradxy);
     vec2<double> gradxy(vec2<double> V); 
 
-    ofstream resultados("res");
-
     random_device seed;
     mt19937_64 rand_gen(seed());
     uniform_real_distribution<double> dist01(0.0,1.0);
@@ -102,43 +98,39 @@ int main()
 
     srj = schedule<5>(get_scheme<5>(Lx));
 
-	for (int iN=0;iN<iNf;iN++) {
 
-		ini();
+    ini();
 
-		for (t=0;t<tf;t++) {
-			step();
-			if ((t+100) % passotips	== 0) {
-				printf("		t = %d\n",t);
-				printf("         x        y       ∇x       ∇y\n");
-				printf("*****************************************\n");
-				for (int k=0;k<tips.size();k++) {
-					const auto grad = gradxy(tips[k]);
-					tips[k] = findxy(tips[k],grad);
-					if (tips[k].x > Lx-1-rad || tips[k].x < rad) {
-						printf("Tip %d out of bounds.\n",k+1);
-						return -1;
-					}
-					printf("Tip %d %-8.4lf %-8.4lf %-8.4lf %-8.4lf\n",k+1,tips[k].x,tips[k].y,grad.x,grad.y);
-				}
-				printf("*****************************************\n");
-				printf("\n");
-
-				csicalc(double(rad), 0);
-				if (fabs(a_med)>20) 
-					break;
-			}
-			if ((t+100) % passotips == 0 && tips.size()<nmax) {
-				//rand = dist01(rand_gen);
-				//if(rand>0.5) 
-				newtip();
-			}
-			if ((t+1) % passo == 0)
-				printf("(Novo output)\n\n");
-			if ((t+2) % passo == 0)
-				outint(t+2);
+    for (t=0;t<tf;t++) {
+	step();
+	if ((t+100) % passotips	== 0) {
+	    printf("		t = %d\n",t);
+	    printf("         x        y       ∇x       ∇y\n");
+	    printf("*****************************************\n");
+	    for (int k=0;k<tips.size();k++) {
+		const auto grad = gradxy(tips[k]);
+		tips[k] = findxy(tips[k],grad);
+		if (tips[k].x > Lx-1-rad || tips[k].x < rad) {
+		    printf("Tip %d out of bounds.\n",k+1);
+		    return -1;
 		}
+		printf("Tip %d %-8.4lf %-8.4lf %-8.4lf %-8.4lf\n",k+1,tips[k].x,tips[k].y,grad.x,grad.y);
+	    }
+	    printf("*****************************************\n");
+	    printf("\n");
+
+	    csicalc(double(rad), 0);
+	    if (fabs(a_med)>20) 
+		break;
 	}
+	if ((t+100) % passotips == 0 && tips.size()<nmax) {
+	    newtip();
+	}
+	if ((t+1) % passo == 0)
+	    printf("(Novo output)\n\n");
+	if ((t+2) % passo == 0)
+	    outint(t+2);
+    }
 }
 
 double medp(vec2<double> V)
@@ -167,52 +159,52 @@ double medp(vec2<double> V)
 
 int maxval(const vector<double>& list)
 {
-	int res = 0;
-	double maxval = 0;
+    int res = 0;
+    double maxval = 0;
 
-	for (int i=0;i<list.size();i++) {
-		if (list[i]>maxval) {
-			maxval=list[i];
-			res=i;
-		}
+    for (int i=0;i<list.size();i++) {
+	if (list[i]>maxval) {
+	    maxval=list[i];
+	    res=i;
 	}
+    }
 
     return res;
 }
 
 bool neigh(int i, int j)
 {
-	int res = 0;
+    int res = 0;
 
-	if (i==0) {
-		if (a[i+1][j]*a[i][j]<0) res+=1;
-		else if (a[Lx-1][j]*a[i][j]<0) res+=1;
-		else if (a[i][j+1]*a[i][j]<0) res+=1;
-		else if (a[i][j-1]*a[i][j]<0) res+=1;
-	}
+    if (i==0) {
+	if (a[i+1][j]*a[i][j]<0) res+=1;
+	else if (a[Lx-1][j]*a[i][j]<0) res+=1;
+	else if (a[i][j+1]*a[i][j]<0) res+=1;
+	else if (a[i][j-1]*a[i][j]<0) res+=1;
+    }
 
-	else if (i==Lx) {
-		if (a[i+1][j]*a[i][j]<0) res+=1;
-		else if (a[Lx-1][j]*a[i][j]<0) res+=1;
-		else if (a[i][j+1]*a[i][j]<0) res+=1;
-		else if (a[i][j-1]*a[i][j]<0) res+=1;
-	}
+    else if (i==Lx) {
+	if (a[i+1][j]*a[i][j]<0) res+=1;
+	else if (a[Lx-1][j]*a[i][j]<0) res+=1;
+	else if (a[i][j+1]*a[i][j]<0) res+=1;
+	else if (a[i][j-1]*a[i][j]<0) res+=1;
+    }
 
-	else {
-		if (a[i+1][j]*a[i][j]<0) res+=1;
-		else if (a[i-1][j]*a[i][j]<0) res+=1;
-		else if (a[i][j+1]*a[i][j]<0) res+=1;
-		else if (a[i][j-1]*a[i][j]<0) res+=1;
-	}
+    else {
+	if (a[i+1][j]*a[i][j]<0) res+=1;
+	else if (a[i-1][j]*a[i][j]<0) res+=1;
+	else if (a[i][j+1]*a[i][j]<0) res+=1;
+	else if (a[i][j-1]*a[i][j]<0) res+=1;
+    }
 
-	if (res==0 || res==4)
-		return 0;
-	else 
-		return 1;
+    if (res==0 || res==4)
+	return 0;
+    else 
+	return 1;
 }
 
 void newtip() {
-    
+
     double phimed;
     vec2<double> pick;
 
@@ -226,7 +218,7 @@ void newtip() {
 	    fail=false;
 	    if( neigh(i,j)==1 && v[i][j]>vtop) {
 		for (int k=0;k<tips.size();k++) {
-		    
+
 		    const double dist1 = sqrt((i-tips[k].x)*(i-tips[k].x)+(j-tips[k].y)*(j-tips[k].y));
 		    const double dist2 = sqrt((i-tips[k].x-Lx)*(i-tips[k].x-Lx)+(j-tips[k].y)*(j-tips[k].y));    
 		    const double dist3 = sqrt((i-tips[k].x+Lx)*(i-tips[k].x+Lx)+(j-tips[k].y)*(j-tips[k].y));    
@@ -253,69 +245,69 @@ void newtip() {
 
 void outint (int ff)
 {
-	char s[32];
-	ofstream wout;
-	ofstream aout;
-	ofstream vout;
-	//ofstream csiout;
-	ofstream tout;
-	double prolif(int i, int j);
-	void prolifupdate();
+    char s[32];
+    ofstream wout;
+    ofstream aout;
+    ofstream vout;
+    //ofstream csiout;
+    ofstream tout;
+    double prolif(int i, int j);
+    void prolifupdate();
 
-	sprintf(s,WOUT"%d",ff);
-	wout.open(s);
-	sprintf(s,AOUT"%d",ff);
-	aout.open(s);
-	sprintf(s,VOUT"%d",ff);
-	vout.open(s);
-	//sprintf(s,"data/csiout_%d",ff);
-	//csiout.open(s);
-	sprintf(s,TOUT"%d",ff);
-	tout.open(s);
+    sprintf(s,WOUT"%d",ff);
+    wout.open(s);
+    sprintf(s,AOUT"%d",ff);
+    aout.open(s);
+    sprintf(s,VOUT"%d",ff);
+    vout.open(s);
+    //sprintf(s,"data/csiout_%d",ff);
+    //csiout.open(s);
+    sprintf(s,TOUT"%d",ff);
+    tout.open(s);
 
-	for (int j=0;j<Ly;j++){
-		for (int i=0;i<Lx;i++){
-			wout<<w[i][j]<<" ";
-			aout<<a[i][j]<<" ";
-			vout<<v[i][j]<<" ";
-			//csiout<<csi[i][j]<<" ";
-		}
-		wout<<"\n";
-		aout<<"\n";
-		vout<<"\n";
-		//csiout<<"\n";
+    for (int j=0;j<Ly;j++){
+	for (int i=0;i<Lx;i++){
+	    wout<<w[i][j]<<" ";
+	    aout<<a[i][j]<<" ";
+	    vout<<v[i][j]<<" ";
+	    //csiout<<csi[i][j]<<" ";
 	}
-	for (int i=0; i<tips.size(); i++) {
-		tout << tips[i].x << " " << tips[i].y << "\n";
-	}
+	wout<<"\n";
+	aout<<"\n";
+	vout<<"\n";
+	//csiout<<"\n";
+    }
+    for (int i=0; i<tips.size(); i++) {
+	tout << tips[i].x << " " << tips[i].y << "\n";
+    }
 
-	aout.close();
-	wout.close();
-	vout.close();
-	//csiout.close();
-	tout.close();
+    aout.close();
+    wout.close();
+    vout.close();
+    //csiout.close();
+    tout.close();
 }
 
 // Inicializa os arrays e as tips
 void ini()
 {
-	a_med=0;
-	for (int i=0;i<Lx;i++){
-		for (int j=0;j<Ly;j++){
-			a[i][j] = i>10 && i<60 ? 1 : -1;
-			w[i][j] = 0;
-			csi[i][j] = 0;
-			i>60?(v[i][j] = vconc):(v[i][j]==0);
-			a_med += a[i][j];
-		}
+    a_med=0;
+    for (int i=0;i<Lx;i++){
+	for (int j=0;j<Ly;j++){
+	    a[i][j] = i>10 && i<60 ? 1 : -1;
+	    w[i][j] = 0;
+	    csi[i][j] = 0;
+	    i>60?(v[i][j] = vconc):(v[i][j]==0);
+	    a_med += a[i][j];
 	}
-	a_med /= (Lx*Ly);
+    }
+    a_med /= (Lx*Ly);
 
-	ifstream tips_in ("tips.in");
-	double x,y;
-	while (tips_in >> x >> y) {
-		tips.push_back({x,y});
-	}
+    ifstream tips_in ("tips.in");
+    double x,y;
+    while (tips_in >> x >> y) {
+	tips.push_back({x,y});
+    }
 }
 
 // Efectua um passo
@@ -334,105 +326,105 @@ inline double f(double z) {
 
 void ch()
 {
-	double prolif(int i, int j);
-	void prolifupdate();
-	double consumo(int i, int j);
+    double prolif(int i, int j);
+    void prolifupdate();
+    double consumo(int i, int j);
 
-	for (int i=0;i<Lx;i++) {
-		for (int j=0;j<Ly;j++) {
-			const double aloc=a[i][j];
-			const double txx=w[bx(i+1)][j]+w[bx(i-1)][j]-2*w[i][j];
-			const double tyy=w[i][by(j+1)]+w[i][by(j-1)]-2*w[i][j];
-			const double txy=(w[bx(i+1)][by(j+1)]-w[bx(i-1)][by(j+1)]+w[bx(i-1)][by(j-1)]-w[bx(i+1)][by(j-1)])/4.0;
-			Q[i][j]=txx*txx+tyy*tyy+2*txy*txy-(f(aloc)+csi[i][j])*(f(aloc)+csi[i][j])/2.0;
+    for (int i=0;i<Lx;i++) {
+	for (int j=0;j<Ly;j++) {
+	    const double aloc=a[i][j];
+	    const double txx=w[bx(i+1)][j]+w[bx(i-1)][j]-2*w[i][j];
+	    const double tyy=w[i][by(j+1)]+w[i][by(j-1)]-2*w[i][j];
+	    const double txy=(w[bx(i+1)][by(j+1)]-w[bx(i-1)][by(j+1)]+w[bx(i-1)][by(j-1)]-w[bx(i+1)][by(j-1)])/4.0;
+	    Q[i][j]=txx*txx+tyy*tyy+2*txy*txy-(f(aloc)+csi[i][j])*(f(aloc)+csi[i][j])/2.0;
 #if (alfa != 0)
-			I1[i][j]=aloc*(txx-(f(aloc)+csi[i][j])/2.0);
-			I2[i][j]=aloc*(tyy-(f(aloc)+csi[i][j])/2.0);
-			I3[i][j]=aloc*txy;
+	    I1[i][j]=aloc*(txx-(f(aloc)+csi[i][j])/2.0);
+	    I2[i][j]=aloc*(tyy-(f(aloc)+csi[i][j])/2.0);
+	    I3[i][j]=aloc*txy;
 #endif
-		}
 	}
+    }
 
 #if (alfa != 0)
-	for (int i=0;i<Lx;i++) {
-		for (int j=0;j<Ly;j++) {
-			IE[i][j]=(I1[bx(i+1)][j]+I1[bx(i-1)][j]-2*I1[i][j])+(I2[i][by(j+1)]+I2[i][by(j-1)]-2*I2[i][j])+2*(I3[bx(i+1)][by(j+1)]-I3[bx(i-1)][by(j+1)]+I3[bx(i-1)][by(j-1)]-I3[bx(i+1)][by(j-1)])/4.0;
-		}
+    for (int i=0;i<Lx;i++) {
+	for (int j=0;j<Ly;j++) {
+	    IE[i][j]=(I1[bx(i+1)][j]+I1[bx(i-1)][j]-2*I1[i][j])+(I2[i][by(j+1)]+I2[i][by(j-1)]-2*I2[i][j])+2*(I3[bx(i+1)][by(j+1)]-I3[bx(i-1)][by(j+1)]+I3[bx(i-1)][by(j-1)]-I3[bx(i+1)][by(j-1)])/4.0;
 	}
+    }
 #endif
 
-	for(int i=0;i<Lx;i++) {
-		for(int j=0;j<Ly;j++) {
-			const double aloc=a[i][j];
-			mu[i][j]=rho0*(-aloc+aloc*aloc*aloc-(a[bx(i+1)][j]+a[bx(i-1)][j]+a[i][by(j-1)]+a[i][by(j+1)]-4*aloc))-ge*Q[i][j]+valoralfa*csi[i][j]/L0;
-		}
+    for(int i=0;i<Lx;i++) {
+	for(int j=0;j<Ly;j++) {
+	    const double aloc=a[i][j];
+	    mu[i][j]=rho0*(-aloc+aloc*aloc*aloc-(a[bx(i+1)][j]+a[bx(i-1)][j]+a[i][by(j-1)]+a[i][by(j+1)]-4*aloc))-ge*Q[i][j]+valoralfa*csi[i][j]/L0;
 	}
+    }
 
-	a_med=0;
-	prolifupdate();
-	for(int i=0;i<Lx;i++) {
-		for(int j=0;j<Ly;j++) {
-			an[i][j]=a[i][j]+dt*(M1*(mu[bx(i+1)][j]+mu[bx(i-1)][j]+mu[i][by(j-1)]+mu[i][by(j+1)]-4*mu[i][j])+(t*dt>10?prolif(i,j):0) );
+    a_med=0;
+    prolifupdate();
+    for(int i=0;i<Lx;i++) {
+	for(int j=0;j<Ly;j++) {
+	    an[i][j]=a[i][j]+dt*(M1*(mu[bx(i+1)][j]+mu[bx(i-1)][j]+mu[i][by(j-1)]+mu[i][by(j+1)]-4*mu[i][j])+(t*dt>10?prolif(i,j):0) );
 #if (alfa !=0)
-			an[i][j]=an[i][j]+2*ge*IE[i][j]*valoralfa*dt/L0;
+	    an[i][j]=an[i][j]+2*ge*IE[i][j]*valoralfa*dt/L0;
 #endif
-			a_med+=an[i][j];
-		}
+	    a_med+=an[i][j];
 	}
-	a_med/=(Lx*Ly);
+    }
+    a_med/=(Lx*Ly);
 
 
-	for(int i=1;i<Lx-1;i++) {
-		for(int j=0;j<Ly;j++) {
-			vn[i][j]=v[i][j]+D*dt*(v[i+1][j]+v[i-1][j]+v[i][by(j+1)]+v[i][by(j-1)]-4*v[i][j]-consumo(i,j));
-		}
+    for(int i=1;i<Lx-1;i++) {
+	for(int j=0;j<Ly;j++) {
+	    vn[i][j]=v[i][j]+D*dt*(v[i+1][j]+v[i-1][j]+v[i][by(j+1)]+v[i][by(j-1)]-4*v[i][j]-consumo(i,j));
 	}
+    }
 
+    for(int j=0;j<Ly;j++){
+	vn[0][j]=vn[1][j];
+	vn[Lx-1][j]=vn[Lx-2][j];
+    }
+
+    for(int i=0;i<Lx;i++){
 	for(int j=0;j<Ly;j++){
-		vn[0][j]=vn[1][j];
-		vn[Lx-1][j]=vn[Lx-2][j];
+	    a[i][j]=an[i][j];
+	    v[i][j]=vn[i][j];
 	}
-
-	for(int i=0;i<Lx;i++){
-		for(int j=0;j<Ly;j++){
-			a[i][j]=an[i][j];
-			v[i][j]=vn[i][j];
-		}
-	}
+    }
 
 }
 
 void poisson()
 {
-	double wn[Lx][Ly];
-	const double tol = 1E-4;
-	const double dtau0 = 0.24;
+    double wn[Lx][Ly];
+    const double tol = 1E-4;
+    const double dtau0 = 0.24;
 
-	double diff=1;
-	do {
-		for (int i=0; i<srj.size() && diff>tol; i++) {
-			const double dtau = srj[i]/4;
-			double sum=0;
-			for (int i=0;i<Lx;i++) {
-				for (int j=0;j<Ly;j++) {
-					wn[i][j]=w[i][j]+dtau*(w[bx(i+1)][j]+w[bx(i-1)][j]+w[i][by(j-1)]+w[i][by(j+1)]-4*w[i][j]-(f(a[i][j])+csi[i][j])/L0);
-					sum+=wn[i][j];
-				}
-			}
-			sum/=(Lx*Ly);
-			diff = 0;
-			for (int i=0;i<Lx;i++) {
-				for (int j=0;j<Ly;j++) {
-					wn[i][j]=wn[i][j]-sum;
-					diff+=fabs(wn[i][j]-w[i][j]);
-					w[i][j]=wn[i][j];
-				}
-			}
-			diff/=(Lx*Ly);
-			if (diff<tol)
-				goto exit1;
+    double diff=1;
+    do {
+	for (int i=0; i<srj.size() && diff>tol; i++) {
+	    const double dtau = srj[i]/4;
+	    double sum=0;
+	    for (int i=0;i<Lx;i++) {
+		for (int j=0;j<Ly;j++) {
+		    wn[i][j]=w[i][j]+dtau*(w[bx(i+1)][j]+w[bx(i-1)][j]+w[i][by(j-1)]+w[i][by(j+1)]-4*w[i][j]-(f(a[i][j])+csi[i][j])/L0);
+		    sum+=wn[i][j];
 		}
-	} while(diff>tol);
+	    }
+	    sum/=(Lx*Ly);
+	    diff = 0;
+	    for (int i=0;i<Lx;i++) {
+		for (int j=0;j<Ly;j++) {
+		    wn[i][j]=wn[i][j]-sum;
+		    diff+=fabs(wn[i][j]-w[i][j]);
+		    w[i][j]=wn[i][j];
+		}
+	    }
+	    diff/=(Lx*Ly);
+	    if (diff<tol)
+		goto exit1;
+	}
+    } while(diff>tol);
 exit1:;
 }
 
@@ -451,158 +443,158 @@ vec2<double> gradxy(vec2<double> V)
 
 void csicalc(double raio, int index)
 {
-	double sum;
-	ofstream csiout;
-	char s[20];
+    double sum;
+    ofstream csiout;
+    char s[20];
 
-	for (int i=0;i<Lx;i++) {
-		for (int j=0;j<Ly;j++){
-			Force[i][j] = 0.;
-			for (int k=0;k<tips.size();k++) {	
+    for (int i=0;i<Lx;i++) {
+	for (int j=0;j<Ly;j++){
+	    Force[i][j] = 0.;
+	    for (int k=0;k<tips.size();k++) {	
 
-				const vec2<double> vgrad = gradxy(tips[k]);
-				const double cos_ = vgrad.x/(sqrt(vgrad.x*vgrad.x+vgrad.y*vgrad.y));
-				const double sin_ = vgrad.y/(sqrt(vgrad.x*vgrad.x+vgrad.y*vgrad.y));
+		const vec2<double> vgrad = gradxy(tips[k]);
+		const double cos_ = vgrad.x/(sqrt(vgrad.x*vgrad.x+vgrad.y*vgrad.y));
+		const double sin_ = vgrad.y/(sqrt(vgrad.x*vgrad.x+vgrad.y*vgrad.y));
 
-				const double cx=i-tips[k].x;
-				const double cy=j-tips[k].y;
+		const double cx=i-tips[k].x;
+		const double cy=j-tips[k].y;
 
-				Force[i][j] += 2*Amp/raio/raio*exp(-(cx*cx+cy*cy)/raio/raio)*((1-2*cx*cx/raio/raio)*cos_+2*cx*cy/raio/raio*sin_);
-			}
-			csi[i][j]=csin[i][j]=0;
-		}
+		Force[i][j] += 2*Amp/raio/raio*exp(-(cx*cx+cy*cy)/raio/raio)*((1-2*cx*cx/raio/raio)*cos_+2*cx*cy/raio/raio*sin_);
+	    }
+	    csi[i][j]=csin[i][j]=0;
 	}
+    }
 
-	const double tol = 1E-6;
-	const double dtau0 = 0.24;
+    const double tol = 1E-6;
+    const double dtau0 = 0.24;
 
-	double diff;
-	do {
-		for (int i=0; i<srj.size(); i++) {
-			const double dtau = srj[i]/4;
+    double diff;
+    do {
+	for (int i=0; i<srj.size(); i++) {
+	    const double dtau = srj[i]/4;
 
-			for(int i=1;i<Lx-1;i++){
-				for(int j=1;j<Ly-1;j++){
-					csin[i][j]=csi[i][j]+dtau*(csi[bx(i+1)][j]+csi[bx(i-1)][j]+csi[i][by(j-1)]+csi[i][by(j+1)]-4*csi[i][j]-Force[i][j]);
-					diff+=fabs(csin[i][j]-csi[i][j]);
-				}
-			}
-			for(int i=0;i<Lx;i++){
-				for(int j=0;j<Ly;j++){
-					csi[i][j]=csin[i][j];
-				}
-			}
-			diff/=(Lx*Ly);
-			if (diff<tol)
-				goto exit;
+	    for(int i=1;i<Lx-1;i++){
+		for(int j=1;j<Ly-1;j++){
+		    csin[i][j]=csi[i][j]+dtau*(csi[bx(i+1)][j]+csi[bx(i-1)][j]+csi[i][by(j-1)]+csi[i][by(j+1)]-4*csi[i][j]-Force[i][j]);
+		    diff+=fabs(csin[i][j]-csi[i][j]);
 		}
-	} while(diff>tol);
+	    }
+	    for(int i=0;i<Lx;i++){
+		for(int j=0;j<Ly;j++){
+		    csi[i][j]=csin[i][j];
+		}
+	    }
+	    diff/=(Lx*Ly);
+	    if (diff<tol)
+		goto exit;
+	}
+    } while(diff>tol);
 exit:
 
-	sprintf(s,CSIOUT"%d",index);
-	csiout.open(s);
+    sprintf(s,CSIOUT"%d",index);
+    csiout.open(s);
 
-	for (int i=0;i<Lx;i++){
-		for (int j=0;j<Ly;j++){
-			csiout << csi[i][j] << " ";
-		}
-		csiout << "\n";
+    for (int i=0;i<Lx;i++){
+	for (int j=0;j<Ly;j++){
+	    csiout << csi[i][j] << " ";
 	}
-	csiout.close();
+	csiout << "\n";
+    }
+    csiout.close();
 }
 
 vec2<double> findxy(vec2<double> pos, vec2<double> gradxy)
 {
-	const double modulo=sqrt(gradxy.x*gradxy.x+gradxy.y*gradxy.y);
+    const double modulo=sqrt(gradxy.x*gradxy.x+gradxy.y*gradxy.y);
 
-	gradxy.x/=modulo;
-	gradxy.y/=modulo;
+    gradxy.x/=modulo;
+    gradxy.y/=modulo;
 
-	pos.x-=2*gradxy.x;
-	pos.y-=2*gradxy.y;
+    pos.x-=2*gradxy.x;
+    pos.y-=2*gradxy.y;
 
-	double delta=2.;
-	vec2<double> posn={0,0};
+    double delta=2.;
+    vec2<double> posn={0,0};
 
-	while (delta>0.001) {
-		posn.x=pos.x+delta*gradxy.x;
-		posn.y=pos.y+delta*gradxy.y;
+    while (delta>0.001) {
+	posn.x=pos.x+delta*gradxy.x;
+	posn.y=pos.y+delta*gradxy.y;
 
-		if (medp(posn)>0) {
-			pos=posn;
-		} else {
-			delta/=2.;
-		}
+	if (medp(posn)>0) {
+	    pos=posn;
+	} else {
+	    delta/=2.;
 	}
-	return pos;
+    }
+    return pos;
 }
 
 double prolif(int i, int j) {
-	if (a[i][j]<=0.5) 
-		return 0;
+    if (a[i][j]<=0.5) 
+	return 0;
 
-	if (i != dp_i) {
-		//double res=0;
-		//int n=0;
-		dp_res = 0;
-		dp_n = 0;
-		for (int x=i-rad;x<=i+rad;x++) {
-			for (int y=j-rad;y<=j+rad;y++) {
-				if (sq(x-i)+sq(y-j) <= sq(rad)) {
-					dp_res += p_res[bx(x)][by(y)];
-					dp_n += p_n[bx(x)][by(y)];
-				}
-			}
+    if (i != dp_i) {
+	//double res=0;
+	//int n=0;
+	dp_res = 0;
+	dp_n = 0;
+	for (int x=i-rad;x<=i+rad;x++) {
+	    for (int y=j-rad;y<=j+rad;y++) {
+		if (sq(x-i)+sq(y-j) <= sq(rad)) {
+		    dp_res += p_res[bx(x)][by(y)];
+		    dp_n += p_n[bx(x)][by(y)];
 		}
-		//cerr << "recomp ";
-		dp_i = i;
+	    }
 	}
-	else {
-		for (int x=i-rad;x<=i+rad;x++) {
-			for (int y=j-rad;y<=j;y++) {
-				if (sq(x-i)+sq(y-j) <= sq(rad)) {
-					dp_res -= p_res[bx(x)][by(y-1)];
-					dp_n -= p_n[bx(x)][by(y-1)];
-					break;
-				}
-			}
-			for (int y=j+rad;y>=j;y--) {
-				if (sq(x-i)+sq(y-j) <= sq(rad)) {
-					dp_res += p_res[bx(x)][by(y)];
-					dp_n += p_n[bx(x)][by(y)];
-					break;
-				}
-			}
+	//cerr << "recomp ";
+	dp_i = i;
+    }
+    else {
+	for (int x=i-rad;x<=i+rad;x++) {
+	    for (int y=j-rad;y<=j;y++) {
+		if (sq(x-i)+sq(y-j) <= sq(rad)) {
+		    dp_res -= p_res[bx(x)][by(y-1)];
+		    dp_n -= p_n[bx(x)][by(y-1)];
+		    break;
 		}
+	    }
+	    for (int y=j+rad;y>=j;y--) {
+		if (sq(x-i)+sq(y-j) <= sq(rad)) {
+		    dp_res += p_res[bx(x)][by(y)];
+		    dp_n += p_n[bx(x)][by(y)];
+		    break;
+		}
+	    }
 	}
-	
+    }
 
 
-	return dp_n>0 ? dp_res/dp_n : 0;
+
+    return dp_n>0 ? dp_res/dp_n : 0;
 }
 
 void prolifupdate()
 {
-	for (int i=0; i<Lx; i++) {
-		for (int j=0; j<Ly; j++) {
+    for (int i=0; i<Lx; i++) {
+	for (int j=0; j<Ly; j++) {
 
-			const double ra = v[i][j];
-			const double aloc = a[i][j];
-			const double rc = csi[i][j]-valoralfa*aloc;
+	    const double ra = v[i][j];
+	    const double aloc = a[i][j];
+	    const double rc = csi[i][j]-valoralfa*aloc;
 
-			if (aloc>0.5 && rc>-valoralfa+0.05) {
-				p_res[i][j] = ra>vmax ? Pmax : ra*Pmax/vmax;
-				p_n[i][j] = 1;
-			}
-			else {
-				p_res[i][j] = 0;
-				p_n[i][j] = 0;
-			}
-		}
+	    if (aloc>0.5 && rc>-valoralfa+0.05) {
+		p_res[i][j] = ra>vmax ? Pmax : ra*Pmax/vmax;
+		p_n[i][j] = 1;
+	    }
+	    else {
+		p_res[i][j] = 0;
+		p_n[i][j] = 0;
+	    }
 	}
+    }
 }
 
 double consumo(int i, int j)
 {
-	return (a[i][j]>0 ? (a[i][j]<1 ? 0.1*a[i][j] : 0.1) : 0)*v[i][j];
+    return (a[i][j]>0 ? (a[i][j]<1 ? 0.1*a[i][j] : 0.1) : 0)*v[i][j];
 }
