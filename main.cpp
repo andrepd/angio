@@ -4,10 +4,6 @@
 #define VOUT output "/vout_"
 #define CSIOUT output "/csiout_"
 
-
-// Struct para um vector bidimensional; declarar com vec2<tipo>
-// Usar para vectores (matemáticos) em vez de usar vectors (do C++)
-// Mais rápido e com sintaxe melhor (v.x,v.y em vez de v[0],v[1])
 template <class T>
 struct vec2 {
     T x,y;
@@ -28,29 +24,16 @@ struct vec2 {
 
 using namespace std;
 
-// Atalho para vector 2d de doubles: vec2d
 typedef vec2<double> vec2d;
 
-// Usar como atalho para x*x, equivalente
 template <typename T> inline T sq(T x) {
     return x*x;
 }
 
-/*
-const int    Lx = 128, Ly = 128;  // Dimensoes da grelha
-const double medini = -0.2, ge = 0.126;
-const double Amp = 10.55;  // Amplitude da forca
-const double D = 11;
-const double dt = 0.02;  // Passo de tempo
-const int    rad = 5;  // Raio das celulas
-const double vbase = 0.01;
-const double valoralfa = 0.065;
-const int    nmax = 4;  // Numero de tip cells maximo
-const double rho0,L0,M,vconc,E,nu;
-*/
-
-const double L0=(1/6/(1-2*nu)+1/4/(1+nu))*E;
-
+const double mu0=Ec/4./(1+nuc)+Eecm/4./(1+nuecm);
+const double ge=abs(Ec/4./(1+nuc)-Eecm/4./(1+nuecm));
+const double K=Ec/6./(1-2*nuc)+Eecm/6./(1-2*nuecm);
+const double L0=K+mu0;
 
 int dp_i=-1, dp_n;
 double dp_res;
@@ -58,7 +41,6 @@ double dp_res;
 vector<double> srj;
 vector<vec2<double>> tips;
 
-//double vmax,Pmax;
 vector<vector<double>> a(Lx,vector<double>(Ly));
 vector<vector<double>> w(Lx,vector<double>(Ly));
 vector<vector<double>> csi(Lx,vector<double>(Ly));
@@ -69,7 +51,6 @@ double a_med;
 vector<vector<double>> p_res(Lx,vector<double>(Ly));
 vector<vector<int>> p_n(Lx,vector<int>(Ly));
 
-// ch()
 vector<vector<double>> Q(Lx,vector<double>(Ly));
 vector<vector<double>> mu(Lx,vector<double>(Ly));
 vector<vector<double>> an(Lx,vector<double>(Ly));
@@ -79,11 +60,9 @@ vector<vector<double>> I2(Lx,vector<double>(Ly));
 vector<vector<double>> I3(Lx,vector<double>(Ly));
 vector<vector<double>> IE(Lx,vector<double>(Ly));
 
-// csicalc()
 vector<vector<double>> Force(Lx,vector<double>(Ly));
 vector<vector<double>> csin(Lx,vector<double>(Ly));
 
-// Condições de fronteira periódicas para x e y
 inline int bx(int xx) {
     return (xx+Lx)%Lx;
 }
@@ -96,7 +75,6 @@ int t;
 int main()
 {
     const int passo = 500;
-    //double rand;
 
     void ini();
     void step();
@@ -113,8 +91,6 @@ int main()
     vec2<double> findxy(vec2<double> pos, vec2<double> gradxy);
     vec2<double> gradxy(vec2<double> V); 
 
-    int count_chunks();
-
     ofstream resultados("res");
 
     random_device seed;
@@ -127,8 +103,6 @@ int main()
     srj = schedule<5>(get_scheme<5>(Lx));
 
 	for (int iN=0;iN<iNf;iN++) {
-		//vmax=0.3;
-		//Pmax=0.03;
 
 		ini();
 
@@ -150,19 +124,11 @@ int main()
 				printf("*****************************************\n");
 				printf("\n");
 
-				/*
-				if (count_chunks() > nchunks) {
-					printf("Vasos partidos!\n\n");
-					nchunks++;
-				}
-				*/
-
 				csicalc(double(rad), 0);
 				if (fabs(a_med)>20) 
 					break;
 			}
 			if ((t+100) % passotips == 0 && tips.size()<nmax) {
-				//rand=drand48();
 				//rand = dist01(rand_gen);
 				//if(rand>0.5) 
 				newtip();
@@ -172,54 +138,9 @@ int main()
 			if ((t+2) % passo == 0)
 				outint(t+2);
 		}
-		resultados << Pmax << "\t" << vmax << "\t" << a_med << "\t" << t*dt << "\n";
-		cout       << Pmax << "\t" << vmax << "\t" << a_med << "\t" << t*dt << "\n";
 	}
 }
 
-// Retorna o número de vasos distintos
-int count_chunks()
-{
-	bool V[Lx][Ly];
-	for (int i=0; i<Lx; i++) {
-		for (int j=0; j<Ly; j++) {
-			V[i][j] = 0;
-		}
-	}
-	int r = 0;
-	for (int i=1; i<Lx-1; i++) {
-		for (int j=1; j<Ly-1; j++) {
-			if (V[i][j] || a[i][j] < 0)
-				continue;
-			r++;
-			stack<vec2<int>> s;
-			s.push(vec2<int> {i,j});
-			while (!s.empty()) {
-				auto top = s.top();
-				s.pop();
-				if (!V[top.x+1][top.y] && a[top.x+1][top.y] > 0) {
-					s.push(vec2<int> {top.x+1,top.y});
-					V[top.x+1][top.y] = 1;
-				}
-				if (!V[top.x-1][top.y] && a[top.x-1][top.y] > 0) {
-					s.push(vec2<int> {top.x-1,top.y});
-					V[top.x-1][top.y] = 1;
-				}
-				if (!V[top.x][top.y+1] && a[top.x][top.y+1] > 0) {
-					s.push(vec2<int> {top.x,top.y+1});
-					V[top.x][top.y+1] = 1;
-				}
-				if (!V[top.x][top.y-1] && a[top.x][top.y-1] > 0) {
-					s.push(vec2<int> {top.x,top.y-1});
-					V[top.x][top.y-1] = 1;
-				}
-			}
-		}
-	}
-	return r;
-}
-
-// Retorna a média pesada
 double medp(vec2<double> V)
 {
     const int x_up = ceil(V.x);
@@ -244,8 +165,6 @@ double medp(vec2<double> V)
     return average/sum;
 }
 
-
-// Retorna o índice do elemento com valor máximo num vector
 int maxval(const vector<double>& list)
 {
 	int res = 0;
@@ -292,7 +211,6 @@ bool neigh(int i, int j)
 		return 1;
 }
 
-// Calcula a posição da nova tip e adiciona ao vector das tips
 void newtip() {
     
     double phimed;
@@ -332,7 +250,7 @@ void newtip() {
     else
 	cout<<"No new tip\n";
 }
-// Imprime os outputs para os ficheiros
+
 void outint (int ff)
 {
 	char s[32];
@@ -662,70 +580,6 @@ double prolif(int i, int j) {
 
 	return dp_n>0 ? dp_res/dp_n : 0;
 }
-
-/*
-// Calculo da proliferação com DP, ~25% mais rápido
-double prolif(int i, int j)
-{
-	if (a[i][j]<=0.5) {
-		return 0;
-	}
-
-	double res=0;
-
-	int n=0;
-	
-	int xr = 0;
-	int yr = rad;
-	for (int x=0; x<
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-	if (j == p_j+1) {  // DP
-		for (int y=j-rad; y<=j+rad; y++) {
-			for (int x=i-rad;x<=i+rad;x++) {
-				if (sq(x-i) + sq(y-j) <= sq(rad)) {
-					res += p_res[bx(x)][by(y)];
-					n += p_n[bx(x)][by(y)];
-				}
-			}
-		}
-
-
-
-
-
-		n = dp_n - p_n[bx(i)][by(p_j-rad)] + p_n[bx(i)][by(j+rad)];
-		res = dp_res - p_res[bx(i)][by(p_j-rad)] + p_res[bx(i)][by(j+rad)];
-	}
-	else {
-		for (int x=i-rad;x<=i+rad;x++) {
-			//for (int y=j-sqrt(sq(x-i)-sq(rad);y<=j+sqrt(sq(x-i)-sq(rad));y++) {
-			for (int y=j-rad; y<=j+rad; y++) {
-				if (sq(x-i) + sq(y-j) <= sq(rad)) {
-					res += p_res[bx(x)][by(y)];
-					n += p_n[bx(x)][by(y)];
-				}
-			}
-		}
-	}
-	dp_n = n;
-	dp_res = res;
-	p_j = j;
-	return n>0 ? res/n : 0;
-}*/
 
 void prolifupdate()
 {
