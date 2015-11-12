@@ -49,6 +49,11 @@ const int    nmax = 4;  // Numero de tip cells maximo
 const double rho0,L0,M,vconc;
 */
 
+const double mu0=Ec/4./(1+nuc)+Eecm/4./(1+nuecm);
+const double ge=abs(Ec/4./(1+nuc)-Eecm/4./(1+nuecm));
+const double K=Ec/6./(1-2*nuc)+Eecm/6./(1-2*nuecm);
+const double L0=K+mu0;
+
 int dp_i=-1, dp_n;
 double dp_res;
 
@@ -123,55 +128,48 @@ int main()
 
     srj = schedule<5>(get_scheme<5>(Lx));
 
-	for (int iN=0;iN<iNf;iN++) {
-		//vmax=0.3;
-		//Pmax=0.03;
+    ini();
 
-		ini();
-
-		for (t=0;t<tf;t++) {
-			step();
-			if ((t+100) % passotips	== 0) {
-				printf("		t = %d\n",t);
-				printf("         x        y       ∇x       ∇y\n");
-				printf("*****************************************\n");
-				for (int k=0;k<tips.size();k++) {
-					const auto grad = gradxy(tips[k]);
-					tips[k] = findxy(tips[k],grad);
-					if (tips[k].x > Lx-1-rad || tips[k].x < rad) {
-						printf("Tip %d out of bounds.\n",k+1);
-						return -1;
-					}
-					printf("Tip %d %-8.4lf %-8.4lf %-8.4lf %-8.4lf\n",k+1,tips[k].x,tips[k].y,grad.x,grad.y);
-				}
-				printf("*****************************************\n");
-				printf("\n");
-
-				/*
-				if (count_chunks() > nchunks) {
-					printf("Vasos partidos!\n\n");
-					nchunks++;
-				}
-				*/
-
-				csicalc(double(rad), 0);
-				if (fabs(a_med)>20) 
-					break;
-			}
-			if ((t+100) % passotips == 0 && tips.size()<nmax) {
-				//rand=drand48();
-				//rand = dist01(rand_gen);
-				//if(rand>0.5) 
-				newtip();
-			}
-			if ((t+1) % passo == 0)
-				printf("(Novo output)\n\n");
-			if ((t+2) % passo == 0)
-				outint(t+2);
+    for (t=0;t<tf;t++) {
+	step();
+	if ((t+100) % passotips	== 0) {
+	    printf("		t = %d\n",t);
+	    printf("         x        y       ∇x       ∇y\n");
+	    printf("*****************************************\n");
+	    for (int k=0;k<tips.size();k++) {
+		const auto grad = gradxy(tips[k]);
+		tips[k] = findxy(tips[k],grad);
+		if (tips[k].x > Lx-1-rad || tips[k].x < rad) {
+		    printf("Tip %d out of bounds.\n",k+1);
+		    return -1;
 		}
-		resultados << Pmax << "\t" << vmax << "\t" << a_med << "\t" << t*dt << "\n";
-		cout       << Pmax << "\t" << vmax << "\t" << a_med << "\t" << t*dt << "\n";
+		printf("Tip %d %-8.4lf %-8.4lf %-8.4lf %-8.4lf\n",k+1,tips[k].x,tips[k].y,grad.x,grad.y);
+	    }
+	    printf("*****************************************\n");
+	    printf("\n");
+
+	    /*
+	       if (count_chunks() > nchunks) {
+	       printf("Vasos partidos!\n\n");
+	       nchunks++;
+	       }
+	     */
+
+	    csicalc(double(rad), 0);
+	    if (fabs(a_med)>20) 
+		break;
 	}
+	if ((t+100) % passotips == 0 && tips.size()<nmax) {
+	    //rand=drand48();
+	    //rand = dist01(rand_gen);
+	    //if(rand>0.5) 
+	    newtip();
+	}
+	if ((t+1) % passo == 0)
+	    printf("(Novo output)\n\n");
+	if ((t+2) % passo == 0)
+	    outint(t+2);
+    }
 }
 
 // Retorna o número de vasos distintos
@@ -290,47 +288,46 @@ bool neigh(int i, int j)
 }
 
 // Calcula a posição da nova tip e adiciona ao vector das tips
-void newtip()
-{
-	int maxval(const vector<double>& list);
-	double phimed;
-	vector<vec2<int>> interface ((Lx-2)*(Ly-2), {0,0});
-	vector<double> vegf ((Lx-2)*(Ly-2), 0.);
-	vec2<int> pick, point;
+void newtip() {
 
-	int pos = 0;
-	for (int i=1;i<Lx-1;i++) {
-		for (int j=1;j<Ly-1;j++) {
-			if (neigh(i,j)==1) {
-				interface[pos] = {i,j};
-				vegf[pos] = v[i][j];
-				pos++;
-			}
+    double phimed;
+    vec2<double> pick;
+
+    pick={-1,-1};
+
+    double vtop=0;
+    bool fail=false;
+
+    for(int i=20;i<Lx-1;i++) {
+	for(int j=1;j<Ly-1;j++) {
+	    fail=false;
+	    if( neigh(i,j)==1 && v[i][j]>vtop) {
+		for (int k=0;k<tips.size();k++) {
+
+		    const double dist1 = sqrt((i-tips[k].x)*(i-tips[k].x)+(j-tips[k].y)*(j-tips[k].y));
+		    const double dist2 = sqrt((i-tips[k].x-Lx)*(i-tips[k].x-Lx)+(j-tips[k].y)*(j-tips[k].y));    
+		    const double dist3 = sqrt((i-tips[k].x+Lx)*(i-tips[k].x+Lx)+(j-tips[k].y)*(j-tips[k].y));    
+		    if (dist1<(4.*rad) || dist2<(4.*rad) || dist3<(4.*rad)) {
+			fail=true;
+			break;
+		    }
 		}
-	}
-
-	int senti = 1;
-
-	while (senti!=0) {
-		int maxvegf = maxval(vegf);
-		pick = interface[maxvegf];
-
-		for (int i=0;i<tips.size();i++) {
-			const double dist1 = sqrt((pick.x-tips[i].x)*(pick.x-tips[i].x)+(pick.y-tips[i].y)*(pick.y-tips[i].y));
-			const double dist2 = sqrt((pick.x-tips[i].x-Lx)*(pick.x-tips[i].x-Lx)+(pick.y-tips[i].y)*(pick.y-tips[i].y));    
-			const double dist3 = sqrt((pick.x-tips[i].x+Lx)*(pick.x-tips[i].x+Lx)+(pick.y-tips[i].y)*(pick.y-tips[i].y));    
-
-			if (dist1<(4.*rad) || dist2<(4.*rad) || dist3<(4.*rad)) {
-				vegf[maxvegf]=-1000;
-				break;
-			}
-			if (i==tips.size()-1)
-				senti = 0;
+		if(fail!=true) {
+		    vtop=v[i][j];
+		    pick={double(i),double(j)};
 		}
+	    }
 	}
-	const vec2<double> ret {double(pick.x),double(pick.y)};
-	tips.push_back(ret);
+    }
+
+    if(pick.x>0) {
+	cout<<"New tip at: " << pick.x << " "<< pick.y<< endl;
+	tips.push_back(pick);
+    }
+    else
+	cout<<"No new tip\n";
 }
+
 
 // Imprime os outputs para os ficheiros
 void outint (int ff)
@@ -662,70 +659,6 @@ double prolif(int i, int j) {
 
 	return dp_n>0 ? dp_res/dp_n : 0;
 }
-
-/*
-// Calculo da proliferação com DP, ~25% mais rápido
-double prolif(int i, int j)
-{
-	if (a[i][j]<=0.5) {
-		return 0;
-	}
-
-	double res=0;
-
-	int n=0;
-	
-	int xr = 0;
-	int yr = rad;
-	for (int x=0; x<
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-	if (j == p_j+1) {  // DP
-		for (int y=j-rad; y<=j+rad; y++) {
-			for (int x=i-rad;x<=i+rad;x++) {
-				if (sq(x-i) + sq(y-j) <= sq(rad)) {
-					res += p_res[bx(x)][by(y)];
-					n += p_n[bx(x)][by(y)];
-				}
-			}
-		}
-
-
-
-
-
-		n = dp_n - p_n[bx(i)][by(p_j-rad)] + p_n[bx(i)][by(j+rad)];
-		res = dp_res - p_res[bx(i)][by(p_j-rad)] + p_res[bx(i)][by(j+rad)];
-	}
-	else {
-		for (int x=i-rad;x<=i+rad;x++) {
-			//for (int y=j-sqrt(sq(x-i)-sq(rad);y<=j+sqrt(sq(x-i)-sq(rad));y++) {
-			for (int y=j-rad; y<=j+rad; y++) {
-				if (sq(x-i) + sq(y-j) <= sq(rad)) {
-					res += p_res[bx(x)][by(y)];
-					n += p_n[bx(x)][by(y)];
-				}
-			}
-		}
-	}
-	dp_n = n;
-	dp_res = res;
-	p_j = j;
-	return n>0 ? res/n : 0;
-}*/
 
 void prolifupdate()
 {

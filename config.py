@@ -14,7 +14,6 @@ defaults = {
         'Lx': '128',
         'Ly': '128',
         'medini': '-.2',
-        'ge': '.126',
         'Amp': '10.55',
         'D': '11',
         'dt': '.02',
@@ -22,15 +21,17 @@ defaults = {
         'vbase': '.01',
         'valoralfa': '.065',
         'nmax': '4',
-        'iNf': '1',
         'tf': '100000',
         'vmax':'0.15',
 	'Pmax':'0.03',
-	'L0':'1',
 	'M1':'1',
-	'rho0':'1',
+	'rho0':'1', 
+	'Eecm': '0.6329',
+	'Ec':'0.084388',
+	'nuc':'0.49',
+	'nuecm':'0.13',
 	'vconc':'1',
-	'output':'\'\"data\"\''
+	'output':'data'
 }
 
 def box(s,c='*',n=None):
@@ -62,6 +63,8 @@ def build(defines, tips):
         for i in tips:
             f.write(i)
 
+    if not os.path.exists(d['output']):
+        os.makedirs(d['output'])
     d['output'] = '\'\"'+d['output']+'\"\''
 
     print 'Constants:'
@@ -73,9 +76,6 @@ def build(defines, tips):
     for i in tips:
         print i
     print
-
-    if not os.path.exists(d['output'][2:-2]):
-        os.makedirs(d['output'][2:-2])
 
     print 'Compiling...'
     os.system('ulimit -s '+str(int(defines['Lx'])*int(defines['Ly'])*128/1024))
