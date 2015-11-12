@@ -529,7 +529,8 @@ vec2<double> findxy(vec2<double> pos, vec2<double> gradxy)
     return pos;
 }
 
-double prolif(int i, int j) {
+double prolif(int i, int j)
+{
     if (a[i][j]<=0.5) 
 	return 0;
 
@@ -568,8 +569,6 @@ double prolif(int i, int j) {
 	}
     }
 
-
-
     return dp_n>0 ? dp_res/dp_n : 0;
 }
 
@@ -596,5 +595,6 @@ void prolifupdate()
 
 double consumo(int i, int j)
 {
+
     return (a[i][j]>0 ? (a[i][j]<1 ? 0.1*a[i][j] : 0.1) : 0)*v[i][j];
 }
