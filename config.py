@@ -31,7 +31,9 @@ defaults = {
 	'nuc':'0.49',
 	'nuecm':'0.13',
 	'vconc':'1',
-	'output':'data'
+	'output':'data',
+        'passo': '500',
+        'passotips': '500',
 }
 
 def box(s,c='*',n=None):
@@ -42,13 +44,14 @@ def box(s,c='*',n=None):
 def parse(name):
     '''Lê as definições do ficheiro name e retorna um dicionário com os defines e uma lista com as coordenadas iniciais das tip cells'''
     print 'Reading input file...',
-    defines = defaults
+    defines = {}
     tips = []
     with open(name, 'r') as f:
         f = [x for x in f if x[0] != '#' and x != '\n' and x != 'TIPS\n']
         for i in f:
             if i[0] == '\t':
-                tips.append(i[1:])
+                t = i[1:].split()
+                tips.append((int(i[0]), int(i[1])))
             else:
                 x = i.strip(' ').strip('\t').strip('\n').split('=')
                 defines[x[0]] = x[1]
@@ -57,15 +60,19 @@ def parse(name):
 
 def build(defines, tips):
     '''Usando os defines em defines e as coordenadas das tips em tips compila o programa'''
-    if not tips:
-        tips.append(str(int(defines['Lx'])/5+10)+' '+str(int(defines['Ly'])/2))
-    with open('tips.in','w') as f:
-        for i in tips:
-            f.write(i)
+    for i in defaults:
+        if i not in defines:
+            defines[i] = defaults[i]
 
-    if not os.path.exists(d['output']):
-        os.makedirs(d['output'])
-    d['output'] = '\'\"'+d['output']+'\"\''
+    if not tips:
+        tips.append((int(defines['Lx'])/5+10,int(defines['Ly'])/2))
+    with open('tips.in','w') as f:
+        for a,b in tips:
+            f.write(str(a)+' '+str(b)+'\n')
+
+    if not os.path.exists(defines['output']):
+        os.makedirs(defines['output'])
+    defines['output'] = '\'\"'+defines['output']+'\"\''
 
     print 'Constants:'
     for i in defines:
@@ -78,8 +85,8 @@ def build(defines, tips):
     print
 
     print 'Compiling...'
-    os.system('ulimit -s '+str(int(defines['Lx'])*int(defines['Ly'])*128/1024))
-    os.system('g++ -pg main.cpp -std=c++11 -march=native -O3 -o main '+' '.join(['-D'+i+'='+j for i,j in defines.items()]))
+    #os.system('ulimit -s '+str(int(defines['Lx'])*int(defines['Ly'])*128/1024))
+    os.system('g++ main.cpp -std=c++11 -march=native -O3 -o main '+' '.join(['-D'+i+'='+j for i,j in defines.items()]))
     print 'Done.\n'
 
 def run():

@@ -4,7 +4,6 @@
 #define VOUT output "/vout_"
 #define CSIOUT output "/csiout_"
 
-
 // Struct para um vector bidimensional; declarar com vec2<tipo>
 // Usar para vectores (matemáticos) em vez de usar vectors (do C++)
 // Mais rápido e com sintaxe melhor (v.x,v.y em vez de v[0],v[1])
@@ -49,10 +48,10 @@ const int    nmax = 4;  // Numero de tip cells maximo
 const double rho0,L0,M,vconc;
 */
 
-const double mu0=Ec/4./(1+nuc)+Eecm/4./(1+nuecm);
-const double ge=abs(Ec/4./(1+nuc)-Eecm/4./(1+nuecm));
-const double K=Ec/6./(1-2*nuc)+Eecm/6./(1-2*nuecm);
-const double L0=K+mu0;
+const double mu0 = Ec/4./(1+nuc)+Eecm/4./(1+nuecm);
+const double ge  = abs(Ec/4./(1+nuc)-Eecm/4./(1+nuecm));
+const double K   = Ec/6./(1-2*nuc)+Eecm/6./(1-2*nuecm);
+const double L0  = K+mu0;
 
 int dp_i=-1, dp_n;
 double dp_res;
@@ -97,14 +96,14 @@ int t;
 
 int main()
 {
-    const int passo = 500;
+    //const int passo = 500;
     //double rand;
 
     void ini();
     void step();
     void out(double x, double y);
     void outint(int ff);
-    void csicalc(double raio, int index);
+    void csicalc(int index);
     void newtip();
 
     double find(double inic, double cy);
@@ -119,57 +118,59 @@ int main()
 
     ofstream resultados("res");
 
+	/*
     random_device seed;
     mt19937_64 rand_gen(seed());
     uniform_real_distribution<double> dist01(0.0,1.0);
+	*/
 
-    const int passotips = 500;
+    //const int passotips = 500;
     int nchunks = 1;
 
     srj = schedule<5>(get_scheme<5>(Lx));
 
     ini();
 
-    for (t=0;t<tf;t++) {
-	step();
-	if ((t+100) % passotips	== 0) {
-	    printf("		t = %d\n",t);
-	    printf("         x        y       ∇x       ∇y\n");
-	    printf("*****************************************\n");
-	    for (int k=0;k<tips.size();k++) {
-		const auto grad = gradxy(tips[k]);
-		tips[k] = findxy(tips[k],grad);
-		if (tips[k].x > Lx-1-rad || tips[k].x < rad) {
-		    printf("Tip %d out of bounds.\n",k+1);
-		    return -1;
+	for (t=0;t<tf;t++) {
+		step();
+		if ((t+100) % passotips	== 0) {
+			printf("		t = %d\n",t);
+			printf("         x        y       ∇x       ∇y\n");
+			printf("*****************************************\n");
+			for (int k=0;k<tips.size();k++) {
+				const auto grad = gradxy(tips[k]);
+				tips[k] = findxy(tips[k],grad);
+				if (tips[k].x > Lx-1-rad || tips[k].x < rad) {
+					printf("Tip %d out of bounds.\n",k+1);
+					return -1;
+				}
+				printf("Tip %d %-8.4lf %-8.4lf %-8.4lf %-8.4lf\n",k+1,tips[k].x,tips[k].y,grad.x,grad.y);
+			}
+			printf("*****************************************\n");
+			printf("\n");
+
+			/*
+			   if (count_chunks() > nchunks) {
+			   printf("Vasos partidos!\n\n");
+			   nchunks++;
+			   }
+			   */
+
+			csicalc(double(rad), 0);
+			if (fabs(a_med)>20) 
+				break;
 		}
-		printf("Tip %d %-8.4lf %-8.4lf %-8.4lf %-8.4lf\n",k+1,tips[k].x,tips[k].y,grad.x,grad.y);
-	    }
-	    printf("*****************************************\n");
-	    printf("\n");
-
-	    /*
-	       if (count_chunks() > nchunks) {
-	       printf("Vasos partidos!\n\n");
-	       nchunks++;
-	       }
-	     */
-
-	    csicalc(double(rad), 0);
-	    if (fabs(a_med)>20) 
-		break;
+		if ((t+100) % passotips == 0 && tips.size()<nmax) {
+			//rand=drand48();
+			//rand = dist01(rand_gen);
+			//if(rand>0.5) 
+			newtip();
+		}
+		/*if ((t+1) % passo == 0)
+			printf("(Novo output)\n\n");*/
+		if ((t+2) % passo == 0)
+			outint(t+2);
 	}
-	if ((t+100) % passotips == 0 && tips.size()<nmax) {
-	    //rand=drand48();
-	    //rand = dist01(rand_gen);
-	    //if(rand>0.5) 
-	    newtip();
-	}
-	if ((t+1) % passo == 0)
-	    printf("(Novo output)\n\n");
-	if ((t+2) % passo == 0)
-	    outint(t+2);
-    }
 }
 
 // Retorna o número de vasos distintos
@@ -288,44 +289,43 @@ bool neigh(int i, int j)
 }
 
 // Calcula a posição da nova tip e adiciona ao vector das tips
-void newtip() {
-
+void newtip()
+{
     double phimed;
     vec2<double> pick;
 
     pick={-1,-1};
 
-    double vtop=0;
-    bool fail=false;
+    double vtop = 0;
+    bool fail;
 
-    for(int i=20;i<Lx-1;i++) {
-	for(int j=1;j<Ly-1;j++) {
-	    fail=false;
-	    if( neigh(i,j)==1 && v[i][j]>vtop) {
-		for (int k=0;k<tips.size();k++) {
-
-		    const double dist1 = sqrt((i-tips[k].x)*(i-tips[k].x)+(j-tips[k].y)*(j-tips[k].y));
-		    const double dist2 = sqrt((i-tips[k].x-Lx)*(i-tips[k].x-Lx)+(j-tips[k].y)*(j-tips[k].y));    
-		    const double dist3 = sqrt((i-tips[k].x+Lx)*(i-tips[k].x+Lx)+(j-tips[k].y)*(j-tips[k].y));    
-		    if (dist1<(4.*rad) || dist2<(4.*rad) || dist3<(4.*rad)) {
-			fail=true;
-			break;
-		    }
+	for (int i=20;i<Lx-1;i++) {
+		for (int j=1;j<Ly-1;j++) {
+			fail = false;
+			if (neigh(i,j)==1 && v[i][j]>vtop) {
+				for (int k=0;k<tips.size();k++) {
+					const double dist1 = sqrt((i-tips[k].x)*(i-tips[k].x)+(j-tips[k].y)*(j-tips[k].y));
+					const double dist2 = sqrt((i-tips[k].x-Lx)*(i-tips[k].x-Lx)+(j-tips[k].y)*(j-tips[k].y));    
+					const double dist3 = sqrt((i-tips[k].x+Lx)*(i-tips[k].x+Lx)+(j-tips[k].y)*(j-tips[k].y));    
+					if (dist1<(4.*rad) || dist2<(4.*rad) || dist3<(4.*rad)) {
+						fail = true;
+						break;
+					}
+				}
+				if (!fail) {
+					vtop = v[i][j];
+					pick = {double(i),double(j)};
+				}
+			}
 		}
-		if(fail!=true) {
-		    vtop=v[i][j];
-		    pick={double(i),double(j)};
-		}
-	    }
 	}
-    }
 
-    if(pick.x>0) {
-	cout<<"New tip at: " << pick.x << " "<< pick.y<< endl;
-	tips.push_back(pick);
-    }
-    else
-	cout<<"No new tip\n";
+	if (pick.x>0) {
+		cout << "New tip at: " << pick.x << " " << pick.y << "\n";
+		tips.push_back(pick);
+	} else {
+		cout << "No new tip.\n";
+	}
 }
 
 
@@ -528,8 +528,9 @@ vec2<double> gradxy(vec2<double> V)
     return grad;
 }
 
-void csicalc(double raio, int index)
+void csicalc(int index)
 {
+	const double raio = double(rad);
 	double sum;
 	ofstream csiout;
 	char s[20];
