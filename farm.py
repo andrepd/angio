@@ -14,6 +14,7 @@ tips = [
     [],
 ]
 
+# Compila todas as combinações
 n=1
 for i,j in permutations(consts, tips):
     #print i,j
@@ -31,6 +32,7 @@ for i,j in permutations(consts, tips):
         f.write(json.dumps(j))
     n+=1
 
+# Escreve o ficheiro para o taskfarmer
 with open('run.sh','w') as f:
     for i in range(1,n):
         I = str(i)

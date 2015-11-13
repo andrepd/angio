@@ -299,7 +299,7 @@ bool neigh(int i, int j)
 // Calcula a posição da nova tip e adiciona ao vector das tips
 void newtip()
 {
-    double phimed;
+    //double phimed;
     vec2<double> pick;
 
     pick={-1,-1};
@@ -320,7 +320,7 @@ void newtip()
 						break;
 					}
 				}
-				if (!fail) {
+				if (!fail && v[i][j] > vtop) {
 					vtop = v[i][j];
 					pick = {double(i),double(j)};
 				}
@@ -495,7 +495,7 @@ void poisson()
 	const double tol = 1E-4;
 	const double dtau0 = 0.24;
 
-	double diff=1;
+	double diff=0;
 	do {
 		for (int i=0; i<srj.size() && diff>tol; i++) {
 			const double dtau = srj[i]/4;
@@ -562,7 +562,7 @@ void csicalc(int index)
 	}
 
 	const double tol = 1E-6;
-	const double dtau0 = 0.24;
+	//const double dtau0 = 0.24;
 
 	double diff;
 	do {

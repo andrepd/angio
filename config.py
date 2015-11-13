@@ -32,7 +32,7 @@ defaults = {
 	'nuecm':'0.13',
 	'vconc':'1',
 	'output':'data',
-        'passo': '200',
+        'passo': '100',
         'passotips': '500',
 }
 
