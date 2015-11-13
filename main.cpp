@@ -56,7 +56,8 @@ const double L0  = K+mu0;
 int dp_i=-1, dp_n;
 double dp_res;
 
-vector<double> srj;
+const vector<double> srj = schedule(get_scheme(Lx/2+Ly/2));
+
 vector<vec2<double>> tips;
 
 //double vmax,Pmax;
@@ -96,6 +97,12 @@ int t;
 
 int main()
 {
+	/*
+	printf("<%d> ",get_scheme(Lx).N);
+	for (auto i: srj) {
+		printf("%f ",i);
+	}
+	*/
     //const int passo = 500;
     //double rand;
 
@@ -126,8 +133,6 @@ int main()
 
     //const int passotips = 500;
     int nchunks = 1;
-
-    srj = schedule<5>(get_scheme<5>(Lx));
 
     ini();
 
@@ -320,7 +325,7 @@ void newtip()
 						break;
 					}
 				}
-				if (!fail && v[i][j] > vtop) {
+				if (!fail) {
 					vtop = v[i][j];
 					pick = {double(i),double(j)};
 				}
@@ -493,7 +498,7 @@ void poisson()
 {
 	double wn[Lx][Ly];
 	const double tol = 1E-4;
-	const double dtau0 = 0.24;
+	//const double dtau0 = 0.24;
 
 	double diff=0;
 	do {
