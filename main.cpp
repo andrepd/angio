@@ -57,7 +57,6 @@ int dp_i=-1, dp_n;
 double dp_res;
 
 const vector<double> srj = schedule(get_scheme(Lx/2+Ly/2));
-
 vector<vec2<double>> tips;
 
 //double vmax,Pmax;
@@ -325,7 +324,7 @@ void newtip()
 						break;
 					}
 				}
-				if (!fail) {
+				if (!fail && v[i][j] > vtop) {
 					vtop = v[i][j];
 					pick = {double(i),double(j)};
 				}
@@ -500,7 +499,7 @@ void poisson()
 	const double tol = 1E-4;
 	//const double dtau0 = 0.24;
 
-	double diff=0;
+	double diff=1;
 	do {
 		for (int i=0; i<srj.size() && diff>tol; i++) {
 			const double dtau = srj[i]/4;

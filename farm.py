@@ -7,7 +7,9 @@ import os
 import json
 
 consts = {
-    'valoralfa': ['.060','.065','.070'],
+    #'valoralfa': ['.060','.065','.070'],
+    'Lx': ['300'],
+    'Ly': ['300'],
 }
 
 tips = [

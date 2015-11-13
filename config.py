@@ -86,7 +86,7 @@ def build(defines, tips):
 
     print 'Compiling...'
     #os.system('ulimit -s '+str(int(defines['Lx'])*int(defines['Ly'])*128/1024))
-    os.system('g++ -pg main.cpp -std=c++11 -march=native -O3 -o main '+' '.join(['-D'+i+'='+j for i,j in defines.items()]))
+    os.system('g++ main.cpp -std=c++11 -march=native -O3 -o main '+' '.join(['-D'+i+'='+j for i,j in defines.items()]))
     print 'Done.\n'
 
 def run():
