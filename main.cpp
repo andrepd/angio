@@ -149,27 +149,32 @@ int main()
 			printf("*****************************************\n");
 			printf("\n");
 
-			/*
-			   if (count_chunks() > nchunks) {
-			   printf("Vasos partidos!\n\n");
-			   nchunks++;
-			   }
-			   */
+			/*if (count_chunks() > nchunks) {
+				printf("Vasos partidos!\n\n");
+				nchunks++;
+			}*/
 
-			csicalc(double(rad), 0);
-			if (fabs(a_med)>20) 
-				break;
+			csicalc(0);
+			/*if (fabs(a_med)>20) 
+				break;*/
+			if (tips.size() < nmax) {
+				newtip();
+			}
 		}
+		/*
 		if ((t+100) % passotips == 0 && tips.size()<nmax) {
 			//rand=drand48();
 			//rand = dist01(rand_gen);
 			//if(rand>0.5) 
 			newtip();
-		}
+		}*/
+
 		/*if ((t+1) % passo == 0)
 			printf("(Novo output)\n\n");*/
-		if ((t+2) % passo == 0)
+		if ((t+2) % passo == 0) {
+			printf("(Novo output)\n\n");
 			outint(t+2);
+		}
 	}
 }
 
@@ -221,8 +226,11 @@ double medp(vec2<double> V)
     const int x_up = ceil(V.x);
     const int x_down = floor(V.x);
 
-    const int y_right = ceil(V.y);
-    const int y_left = floor(V.y);
+	//const int x_up = x_up_ < 0 ? 0 : (x_up_ >= Lx ? Lx-1 : x_up_);
+	//const int x_down = x_down_ < 0 ? 0 : (x_down_ >= Lx ? Lx-1 : x_down_);
+
+    const int y_right = by(ceil(V.y));
+    const int y_left = by(floor(V.y));
 
     const double dxup=x_up-V.x;
     const double dyr=y_right-V.y;

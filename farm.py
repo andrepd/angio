@@ -31,7 +31,7 @@ for i,j in permutations(consts, tips):
         f.write(json.dumps(j))
     n+=1
 
-for i in range(1,n):
-    with open('run.sh','w') as f:
+with open('run.sh','w') as f:
+    for i in range(1,n):
         I = str(i)
         f.write('cd '+I+' ; ./main\n')

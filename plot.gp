@@ -7,8 +7,8 @@ unset key
 load 'colors.gp'
 
 set palette negative
-do for [i=1000:100000:500] {
+do for [i=1000:100000:200] {
 	set title sprintf("t = %d",i)
-	plot './data/aout_'.i matrix w image, './data/tout_'.i ps 4
-	pause 0.1
+	plot '1/data/aout_'.i matrix w image, '1/data/tout_'.i ps 4 lc 2
+	pause 0.05
 }
