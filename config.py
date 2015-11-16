@@ -74,6 +74,11 @@ def build(defines, tips):
         os.makedirs(defines['output'])
     defines['output'] = '\'\"'+defines['output']+'\"\''
 
+    if 'LL' in defines:
+        defines['Lx'] = defines['LL']
+        defines['Ly'] = defines['LL']
+        del defines['LL']
+
     print 'Constants:'
     for i in defines:
         print i,'=',defines[i]

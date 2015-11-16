@@ -87,6 +87,7 @@ vector<vector<double>> csin(Lx,vector<double>(Ly));
 // Condições de fronteira periódicas para x e y
 inline int bx(int xx) {
     return (xx+Lx)%Lx;
+	//return xx<0 ? 0 : (xx>=Lx ? Lx-1 : xx);
 }
 inline int by(int yy) {
     return (yy+Ly)%Ly;
@@ -308,7 +309,7 @@ void newtip()
 
     pick={-1,-1};
 
-    double vtop = 0;
+    double vtop = -1;
     bool fail;
 
 	for (int i=20;i<Lx-1;i++) {

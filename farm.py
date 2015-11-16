@@ -8,8 +8,8 @@ import json
 
 consts = {
     #'valoralfa': ['.060','.065','.070'],
-    'Lx': ['300'],
-    'Ly': ['300'],
+    'LL': ['300'],
+    'Eecm': [str(x/1000.) for x in range(400,1000,50)]
 }
 
 tips = [
@@ -35,7 +35,7 @@ for i,j in permutations(consts, tips):
     n+=1
 
 # Escreve o ficheiro para o taskfarmer
-with open('run.sh','w') as f:
+with open('run.txt','w') as f:
     for i in range(1,n):
         I = str(i)
         f.write('cd '+I+' ; ./main\n')
