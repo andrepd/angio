@@ -52,6 +52,9 @@ const double nuecm = 0.13;
 const double vmax = 0.15;
 const double Pmax = 0.03;
 const double vconc = 1.5;
+const int    passo = 200;
+      int    passotips = 200;
+const double passopassotips = 1.25;
 
 const double mu0 = Ec/4./(1+nuc)+Eecm/4./(1+nuecm);
 const double ge  = abs(Ec/4./(1+nuc)-Eecm/4./(1+nuecm));
@@ -339,6 +342,7 @@ void newtip()
 	if (pick.x>0) {
 		cout << "New tip at: " << pick.x << " " << pick.y << "\n";
 		tips.push_back(pick);
+		passotips *= passopassotips;
 	} else {
 		cout << "No new tip.\n";
 	}
