@@ -35,18 +35,23 @@ template <typename T> inline T sq(T x) {
     return x*x;
 }
 
-/*
-const int    Lx = 128, Ly = 128;  // Dimensoes da grelha
-const double medini = -0.2, ge = 0.126;
-const double Amp = 10.55;  // Amplitude da forca
+const int    Lx = 400, Ly = 400;  // Dimensoes da grelha
+const double Amp = 9;  // Amplitude da forca
 const double D = 11;
 const double dt = 0.02;  // Passo de tempo
 const int    rad = 5;  // Raio das celulas
 const double vbase = 0.01;
 const double valoralfa = 0.065;
-const int    nmax = 4;  // Numero de tip cells maximo
-const double rho0,L0,M,vconc;
-*/
+const int    nmax = 30;  // Numero de tip cells maximo
+const double rho0 = 1;
+const double M1 = 1;
+const double Ec = 0.084388;
+//const double Eecm=0.6329;
+const double nuc = 0.49;
+const double nuecm = 0.13;
+const double vmax = 0.15;
+const double Pmax = 0.03;
+const double vconc = 1.5;
 
 const double mu0 = Ec/4./(1+nuc)+Eecm/4./(1+nuecm);
 const double ge  = abs(Ec/4./(1+nuc)-Eecm/4./(1+nuecm));
@@ -60,10 +65,10 @@ const vector<double> srj = schedule(get_scheme(Lx/2+Ly/2));
 vector<vec2<double>> tips;
 
 //double vmax,Pmax;
-vector<vector<double>> a(Lx,vector<double>(Ly));
-vector<vector<double>> w(Lx,vector<double>(Ly));
+vector<vector<double>> a  (Lx,vector<double>(Ly));
+vector<vector<double>> w  (Lx,vector<double>(Ly));
 vector<vector<double>> csi(Lx,vector<double>(Ly));
-vector<vector<double>> v(Lx,vector<double>(Ly));
+vector<vector<double>> v  (Lx,vector<double>(Ly));
 	
 double a_med;
 
@@ -71,7 +76,7 @@ vector<vector<double>> p_res(Lx,vector<double>(Ly));
 vector<vector<int>> p_n(Lx,vector<int>(Ly));
 
 // ch()
-vector<vector<double>> Q(Lx,vector<double>(Ly));
+vector<vector<double>> Q (Lx,vector<double>(Ly));
 vector<vector<double>> mu(Lx,vector<double>(Ly));
 vector<vector<double>> an(Lx,vector<double>(Ly));
 vector<vector<double>> vn(Lx,vector<double>(Ly));
@@ -628,7 +633,8 @@ vec2<double> findxy(vec2<double> pos, vec2<double> grad)
 	return pos;
 }
 
-double prolif(int i, int j) {
+double prolif(int i, int j)
+{
 	if (a[i][j]<=0.5) 
 		return 0;
 
@@ -676,7 +682,6 @@ void prolifupdate()
 {
 	for (int i=0; i<Lx; i++) {
 		for (int j=0; j<Ly; j++) {
-
 			const double ra = v[i][j];
 			const double aloc = a[i][j];
 			const double rc = csi[i][j]-valoralfa*aloc;
@@ -684,8 +689,7 @@ void prolifupdate()
 			if (aloc>0.5 && rc>-valoralfa+0.05) {
 				p_res[i][j] = ra>vmax ? Pmax : ra*Pmax/vmax;
 				p_n[i][j] = 1;
-			}
-			else {
+			} else {
 				p_res[i][j] = 0;
 				p_n[i][j] = 0;
 			}
