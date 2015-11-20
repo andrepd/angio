@@ -305,9 +305,7 @@ bool neigh(int i, int j)
 void newtip()
 {
     //double phimed;
-    vec2<double> pick;
-
-    pick={-1,-1};
+    vec2<double> pick = {-1,-1};
 
     double vtop = -1;
     bool fail;
@@ -397,7 +395,7 @@ void ini()
 			a[i][j] = i>10 && i<60 ? 1 : -1;
 			w[i][j] = 0;
 			csi[i][j] = 0;
-			i>60?(v[i][j] = vconc):(v[i][j]==0);
+			i>60 ? v[i][j]=vconc : v[i][j]=0;
 			a_med += a[i][j];
 		}
 	}
@@ -604,22 +602,22 @@ exit:
 	csiout.close();
 }
 
-vec2<double> findxy(vec2<double> pos, vec2<double> gradxy)
+vec2<double> findxy(vec2<double> pos, vec2<double> grad)
 {
-	const double modulo=sqrt(gradxy.x*gradxy.x+gradxy.y*gradxy.y);
+	const double modulo = sqrt(grad.x*grad.x+grad.y*grad.y);
 
-	gradxy.x/=modulo;
-	gradxy.y/=modulo;
+	grad.x/=modulo;
+	grad.y/=modulo;
 
-	pos.x-=2*gradxy.x;
-	pos.y-=2*gradxy.y;
+	pos.x-=2*grad.x;
+	pos.y-=2*grad.y;
 
-	double delta=2.;
-	vec2<double> posn={0,0};
+	double delta = 2.;
+	vec2<double> posn = {0,0};
 
 	while (delta>0.001) {
-		posn.x=pos.x+delta*gradxy.x;
-		posn.y=pos.y+delta*gradxy.y;
+		posn.x = pos.x+delta*grad.x;
+		posn.y = pos.y+delta*grad.y;
 
 		if (medp(posn)>0) {
 			pos=posn;
