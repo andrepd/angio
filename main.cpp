@@ -55,6 +55,7 @@ const double vconc = 1.5;
 const int    passo = 200;
       int    passotips = 200;
 const double passopassotips = 1.25;
+const int    tf = 150000;
 
 const double mu0 = Ec/4./(1+nuc)+Eecm/4./(1+nuecm);
 const double ge  = abs(Ec/4./(1+nuc)-Eecm/4./(1+nuecm));
