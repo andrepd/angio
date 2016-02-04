@@ -1,3 +1,4 @@
+#define output "data"
 #define WOUT output "/wout_"
 #define AOUT output "/aout_"
 #define TOUT output "/tout_"
